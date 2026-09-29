@@ -1,0 +1,272 @@
+
+targets: 15
+===== --C-airtime-- / session-b602c1c6-833c-4334-9c8e-ee944d139c83 =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-airtime--\session-b602c1c6-833c-4334-9c8e-ee944d139c83\session.jsonl.zstd
+[read] frames=890 bytes=368034 rows=1218
+[read] header version=0 id=session-b602c1c6-833c-4334-9c8e-ee944d139c83 cwd=C:\airtime
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[normalize] permission/preset: dropping legacy member "origin"
+[migrate] OK -> v3, events=160, inheritedEventCount=0
+[normalize] applied=permission/preset(origin)
+[normalize] patched=none
+[write] C:\plan-fact-app\.tmp\stage\--C-airtime--\session-b602c1c6-833c-4334-9c8e-ee944d139c83\session.v3.jsonl.zstd bytes=114766
+[verify] frames=2 rows=161 readHeader=current version=3
+[verify] events=160 (expected 160)
+[verify] OK
+[hist v0] reasoning-chunks=497 assistant/chunk=263 tool-call-chunks=210 text-chunks=90 tool/call=30 tool/result=30 step/start=25 assistant/message=25 step/end=25 web/deepseek-search-llm-request=5 agent/inbox/spliced=2 user/message=2 session/title=2 request/header=2 permission/preset=1 sandbox/mode=1 approval/policy=1 turn/start=1 request/context=1 session/title-llm-request=1 llm/retry=1 llm/retry-started=1 turn/end=1
+[hist v3] tool/call=30 tool/result=30 step/start=25 assistant/message=25 step/end=25 web/deepseek-search-llm-request=5 agent/inbox/spliced=2 system/message=2 user/message=2 session/title=2 request/header=2 permission/preset=1 sandbox/mode=1 approval/policy=1 turn/start=1 request/context=1 session/title-llm-request=1 assistant/attempt=1 llm/retry=1 llm/retry-started=1 turn/end=1
+[check] user/message v0=2 v3=2
+[check] surface rows v0=57 v3=59
+===== --C-bot-- / session-141c27d0-ecc7-4603-a18b-fa6ea5c6815e =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-bot--\session-141c27d0-ecc7-4603-a18b-fa6ea5c6815e\session.jsonl.zstd
+[read] frames=14682 bytes=5838815 rows=20498
+[read] header version=0 id=session-141c27d0-ecc7-4603-a18b-fa6ea5c6815e cwd=C:\bot
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[normalize] permission/preset: dropping legacy member "origin"
+[migrate] OK -> v3, events=3032, inheritedEventCount=0
+[normalize] applied=permission/preset(origin)
+[normalize] patched=none
+[write] C:\plan-fact-app\.tmp\stage\--C-bot--\session-141c27d0-ecc7-4603-a18b-fa6ea5c6815e\session.v3.jsonl.zstd bytes=1653312
+[verify] frames=2 rows=3033 readHeader=current version=3
+[verify] events=3032 (expected 3032)
+[verify] OK
+[hist v0] reasoning-chunks=6618 tool-call-chunks=5242 assistant/chunk=4644 text-chunks=964 step/start=582 assistant/message=582 step/end=582 tool/call=569 tool/result=569 agent/inbox/spliced=48 user/message=25 turn/start=23 turn/end=23 todo/write=9 web/deepseek-search-llm-request=6 session/title=2 request/header=2 permission/preset=1 sandbox/mode=1 approval/policy=1 request/context=1 session/title-llm-request=1 llm/retry=1 llm/retry-started=1
+[hist v3] step/start=582 assistant/message=582 step/end=582 tool/call=569 tool/result=569 agent/inbox/spliced=48 user/message=25 turn/start=23 turn/end=23 todo/write=9 web/deepseek-search-llm-request=6 system/message=2 session/title=2 request/header=2 permission/preset=1 sandbox/mode=1 approval/policy=1 request/context=1 session/title-llm-request=1 assistant/attempt=1 llm/retry=1 llm/retry-started=1
+[check] user/message v0=25 v3=25
+[check] surface rows v0=1176 v3=1178
+===== --C-bot2-- / session-eb0a702e-c6be-4d32-8fc4-8398b1386c05 =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-bot2--\session-eb0a702e-c6be-4d32-8fc4-8398b1386c05\session.jsonl.zstd
+[read] frames=2 bytes=320 rows=4
+[read] header version=0 id=session-eb0a702e-c6be-4d32-8fc4-8398b1386c05 cwd=C:\bot2
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[normalize] permission/preset: dropping legacy member "origin"
+[migrate] OK -> v3, events=3, inheritedEventCount=0
+[normalize] applied=permission/preset(origin)
+[normalize] patched=none
+[write] C:\plan-fact-app\.tmp\stage\--C-bot2--\session-eb0a702e-c6be-4d32-8fc4-8398b1386c05\session.v3.jsonl.zstd bytes=313
+[verify] frames=2 rows=4 readHeader=current version=3
+[verify] events=3 (expected 3)
+[verify] OK
+[hist v0] permission/preset=1 sandbox/mode=1 approval/policy=1
+[hist v3] permission/preset=1 sandbox/mode=1 approval/policy=1
+[check] user/message v0=0 v3=0
+[check] surface rows v0=0 v3=0
+===== --C-plan-fact-app-- / 55c709ed-c2b9-4ecc-8bab-1a2c6008df7f =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-plan-fact-app--\55c709ed-c2b9-4ecc-8bab-1a2c6008df7f\session.jsonl.zstd
+[read] frames=1223 bytes=1090581 rows=1994
+[read] header version=0 id=55c709ed-c2b9-4ecc-8bab-1a2c6008df7f cwd=C:\plan-fact-app
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[migrate] OK -> v3, events=428, inheritedEventCount=0
+[normalize] applied=none
+[normalize] patched=subagent/descriptor.version 2->3 x1
+[descriptor] {"version":3,"mode":"continuable","provider":"spawn","label":"Rewrite schedule tab","agentProvider":"deepseek-official","agentModel":"deepseek-v4-flash"}
+[write] C:\plan-fact-app\.tmp\stage\--C-plan-fact-app--\55c709ed-c2b9-4ecc-8bab-1a2c6008df7f\session.v3.jsonl.zstd bytes=537808
+[verify] frames=2 rows=429 readHeader=current version=3
+[verify] events=428 (expected 428)
+[verify] OK
+[hist v0] reasoning-chunks=800 assistant/chunk=502 tool-call-chunks=246 tool/call=86 tool/result=86 step/start=78 assistant/message=78 step/end=78 text-chunks=19 agent/inbox/spliced=4 user/message=3 session/end-seed=2 turn/start=2 request/header=2 turn/end=2 subagent/descriptor=1 sandbox/mode=1 approval/policy=1 session/title=1 request/context=1
+[hist v3] tool/call=86 tool/result=86 step/start=78 assistant/message=78 step/end=78 agent/inbox/spliced=4 user/message=3 session/end-seed=2 turn/start=2 system/message=2 request/header=2 turn/end=2 subagent/descriptor=1 sandbox/mode=1 approval/policy=1 session/title=1 request/context=1
+[check] user/message v0=3 v3=3
+[check] surface rows v0=167 v3=169
+===== --C-plan-fact-app-- / 5cbdefcd-a083-4d83-98b8-6dc4c745e5b1 =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-plan-fact-app--\5cbdefcd-a083-4d83-98b8-6dc4c745e5b1\session.jsonl.zstd
+[read] frames=1293 bytes=706860 rows=1590
+[read] header version=0 id=5cbdefcd-a083-4d83-98b8-6dc4c745e5b1 cwd=C:\plan-fact-app
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[migrate] OK -> v3, events=145, inheritedEventCount=0
+[normalize] applied=none
+[normalize] patched=subagent/descriptor.version 2->3 x1
+[descriptor] {"version":3,"mode":"continuable","provider":"spawn","label":"Extract web UI design spec","agentProvider":"deepseek-official","agentModel":"deepseek-v4-flash"}
+[write] C:\plan-fact-app\.tmp\stage\--C-plan-fact-app--\5cbdefcd-a083-4d83-98b8-6dc4c745e5b1\session.v3.jsonl.zstd bytes=282057
+[verify] frames=2 rows=146 readHeader=current version=3
+[verify] events=145 (expected 145)
+[verify] OK
+[hist v0] tool-call-chunks=744 reasoning-chunks=409 assistant/chunk=268 tool/call=32 tool/result=32 text-chunks=25 step/start=22 assistant/message=22 step/end=22 agent/inbox/spliced=2 user/message=2 subagent/descriptor=1 session/end-seed=1 sandbox/mode=1 approval/policy=1 turn/start=1 session/title=1 request/header=1 request/context=1 turn/end=1
+[hist v3] tool/call=32 tool/result=32 step/start=22 assistant/message=22 step/end=22 agent/inbox/spliced=2 system/message=2 user/message=2 subagent/descriptor=1 session/end-seed=1 sandbox/mode=1 approval/policy=1 turn/start=1 session/title=1 request/header=1 request/context=1 turn/end=1
+[check] user/message v0=2 v3=2
+[check] surface rows v0=56 v3=58
+===== --C-plan-fact-app-- / 8c5af351-f412-4e0a-872e-43381ff80909 =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-plan-fact-app--\8c5af351-f412-4e0a-872e-43381ff80909\session.jsonl.zstd
+[read] frames=1177 bytes=889776 rows=2024
+[read] header version=0 id=8c5af351-f412-4e0a-872e-43381ff80909 cwd=C:\plan-fact-app
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[migrate] OK -> v3, events=455, inheritedEventCount=0
+[normalize] applied=none
+[normalize] patched=subagent/descriptor.version 2->3 x1
+[descriptor] {"version":3,"mode":"continuable","provider":"spawn","label":"Rewrite meal tab","agentProvider":"deepseek-official","agentModel":"deepseek-v4-flash"}
+[write] C:\plan-fact-app\.tmp\stage\--C-plan-fact-app--\8c5af351-f412-4e0a-872e-43381ff80909\session.v3.jsonl.zstd bytes=392100
+[verify] frames=2 rows=456 readHeader=current version=3
+[verify] events=455 (expected 455)
+[verify] OK
+[hist v0] reasoning-chunks=800 assistant/chunk=547 tool-call-chunks=200 tool/call=94 tool/result=94 step/start=84 assistant/message=84 step/end=84 text-chunks=23 agent/inbox/spliced=2 user/message=2 subagent/descriptor=1 session/end-seed=1 sandbox/mode=1 approval/policy=1 turn/start=1 session/title=1 request/header=1 request/context=1 turn/end=1
+[hist v3] tool/call=94 tool/result=94 step/start=84 assistant/message=84 step/end=84 agent/inbox/spliced=2 system/message=2 user/message=2 subagent/descriptor=1 session/end-seed=1 sandbox/mode=1 approval/policy=1 turn/start=1 session/title=1 request/header=1 request/context=1 turn/end=1
+[check] user/message v0=2 v3=2
+[check] surface rows v0=180 v3=182
+===== --C-plan-fact-app-- / 8fffc0d3-990f-4fe0-9366-95976d1b4f4f =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-plan-fact-app--\8fffc0d3-990f-4fe0-9366-95976d1b4f4f\session.jsonl.zstd
+[read] frames=1810 bytes=1362663 rows=2861
+[read] header version=0 id=8fffc0d3-990f-4fe0-9366-95976d1b4f4f cwd=C:\plan-fact-app
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[migrate] OK -> v3, events=591, inheritedEventCount=0
+[normalize] applied=none
+[normalize] patched=subagent/descriptor.version 2->3 x1
+[descriptor] {"version":3,"mode":"continuable","provider":"spawn","label":"Rewrite plan-fact tab","agentProvider":"deepseek-official","agentModel":"deepseek-v4-flash"}
+[write] C:\plan-fact-app\.tmp\stage\--C-plan-fact-app--\8fffc0d3-990f-4fe0-9366-95976d1b4f4f\session.v3.jsonl.zstd bytes=633388
+[verify] frames=2 rows=592 readHeader=current version=3
+[verify] events=591 (expected 591)
+[verify] OK
+[hist v0] reasoning-chunks=1189 assistant/chunk=691 tool-call-chunks=348 tool/call=118 tool/result=118 step/start=111 assistant/message=111 step/end=111 text-chunks=43 agent/inbox/spliced=4 user/message=3 session/end-seed=2 turn/start=2 request/header=2 turn/end=2 subagent/descriptor=1 sandbox/mode=1 approval/policy=1 session/title=1 request/context=1
+[hist v3] tool/call=118 tool/result=118 step/start=111 assistant/message=111 step/end=111 agent/inbox/spliced=4 user/message=3 session/end-seed=2 turn/start=2 system/message=2 request/header=2 turn/end=2 subagent/descriptor=1 sandbox/mode=1 approval/policy=1 session/title=1 request/context=1
+[check] user/message v0=3 v3=3
+[check] surface rows v0=232 v3=234
+===== --C-plan-fact-app-- / e952fcbf-2f21-4c61-ae65-9c35ebce8272 =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-plan-fact-app--\e952fcbf-2f21-4c61-ae65-9c35ebce8272\session.jsonl.zstd
+[read] frames=1103 bytes=825175 rows=1724
+[read] header version=0 id=e952fcbf-2f21-4c61-ae65-9c35ebce8272 cwd=C:\plan-fact-app
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[migrate] OK -> v3, events=341, inheritedEventCount=0
+[normalize] applied=none
+[normalize] patched=subagent/descriptor.version 2->3 x1
+[descriptor] {"version":3,"mode":"continuable","provider":"spawn","label":"Rewrite timesheet tab","agentProvider":"deepseek-official","agentModel":"deepseek-v4-flash"}
+[write] C:\plan-fact-app\.tmp\stage\--C-plan-fact-app--\e952fcbf-2f21-4c61-ae65-9c35ebce8272\session.v3.jsonl.zstd bytes=386143
+[verify] frames=2 rows=342 readHeader=current version=3
+[verify] events=341 (expected 341)
+[verify] OK
+[hist v0] reasoning-chunks=775 assistant/chunk=420 tool-call-chunks=175 tool/call=70 tool/result=70 step/start=62 assistant/message=62 step/end=62 text-chunks=14 agent/inbox/spliced=2 user/message=2 subagent/descriptor=1 session/end-seed=1 sandbox/mode=1 approval/policy=1 turn/start=1 session/title=1 request/header=1 request/context=1 turn/end=1
+[hist v3] tool/call=70 tool/result=70 step/start=62 assistant/message=62 step/end=62 agent/inbox/spliced=2 system/message=2 user/message=2 subagent/descriptor=1 session/end-seed=1 sandbox/mode=1 approval/policy=1 turn/start=1 session/title=1 request/header=1 request/context=1 turn/end=1
+[check] user/message v0=2 v3=2
+[check] surface rows v0=134 v3=136
+===== --C-plan-fact-app-- / fc219e24-104e-453b-8dc5-ea18ede81b94 =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-plan-fact-app--\fc219e24-104e-453b-8dc5-ea18ede81b94\session.jsonl.zstd
+[read] frames=3373 bytes=1671261 rows=4798
+[read] header version=0 id=fc219e24-104e-453b-8dc5-ea18ede81b94 cwd=C:\plan-fact-app
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[migrate] OK -> v3, events=676, inheritedEventCount=0
+[normalize] applied=none
+[normalize] patched=subagent/descriptor.version 2->3 x1
+[descriptor] {"version":3,"mode":"continuable","provider":"spawn","label":"Build desktop variant A","agentProvider":"deepseek-official","agentModel":"deepseek-v4-flash"}
+[write] C:\plan-fact-app\.tmp\stage\--C-plan-fact-app--\fc219e24-104e-453b-8dc5-ea18ede81b94\session.v3.jsonl.zstd bytes=534862
+[verify] frames=2 rows=677 readHeader=current version=3
+[verify] events=676 (expected 676)
+[verify] OK
+[hist v0] reasoning-chunks=1858 assistant/chunk=1138 tool-call-chunks=1026 tool/call=145 tool/result=145 step/start=117 assistant/message=117 step/end=117 text-chunks=101 agent/inbox/spliced=14 user/message=8 todo/write=2 subagent/descriptor=1 session/end-seed=1 sandbox/mode=1 approval/policy=1 turn/start=1 session/title=1 request/header=1 request/context=1 turn/end=1
+[hist v3] tool/call=145 tool/result=145 step/start=117 assistant/message=117 step/end=117 agent/inbox/spliced=14 user/message=8 system/message=2 todo/write=2 subagent/descriptor=1 session/end-seed=1 sandbox/mode=1 approval/policy=1 turn/start=1 session/title=1 request/header=1 request/context=1 turn/end=1
+[check] user/message v0=8 v3=8
+[check] surface rows v0=270 v3=272
+===== --C-plan-fact-app-- / session-8d3180ee-f541-440b-8bcd-5d11158bd9f6 =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-plan-fact-app--\session-8d3180ee-f541-440b-8bcd-5d11158bd9f6\session.jsonl.zstd
+[read] frames=5675 bytes=3058255 rows=8436
+[read] header version=0 id=session-8d3180ee-f541-440b-8bcd-5d11158bd9f6 cwd=C:\plan-fact-app
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[normalize] permission/preset: dropping legacy member "origin"
+[migrate] OK -> v3, events=1305, inheritedEventCount=0
+[normalize] applied=permission/preset(origin)
+[normalize] patched=none
+[write] C:\plan-fact-app\.tmp\stage\--C-plan-fact-app--\session-8d3180ee-f541-440b-8bcd-5d11158bd9f6\session.v3.jsonl.zstd bytes=1071075
+[verify] frames=2 rows=1306 readHeader=current version=3
+[verify] events=1305 (expected 1305)
+[verify] OK
+[hist v0] reasoning-chunks=2770 assistant/chunk=2103 tool-call-chunks=2046 tool/call=278 tool/result=278 step/start=218 assistant/message=218 step/end=218 text-chunks=213 agent/inbox/spliced=38 user/message=24 todo/write=5 turn/start=4 turn/end=4 goal/change=4 session/title=2 request/header=2 approval/asked=2 approval/decided=2 permission/preset=1 sandbox/mode=1 approval/policy=1 session/end-seed=1 request/context=1 session/title-llm-request=1
+[hist v3] tool/call=278 tool/result=278 step/start=218 assistant/message=218 step/end=218 agent/inbox/spliced=38 user/message=24 todo/write=5 turn/start=4 turn/end=4 goal/change=4 system/message=2 session/title=2 request/header=2 approval/asked=2 approval/decided=2 permission/preset=1 sandbox/mode=1 approval/policy=1 session/end-seed=1 request/context=1 session/title-llm-request=1
+[check] user/message v0=24 v3=24
+[check] surface rows v0=520 v3=522
+===== --C-plan-fact-app-- / session-98287012-c957-4fd4-a739-05b83d9d86b0 =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-plan-fact-app--\session-98287012-c957-4fd4-a739-05b83d9d86b0\session.jsonl.zstd
+[read] frames=21462 bytes=10925765 rows=33759
+[read] header version=0 id=session-98287012-c957-4fd4-a739-05b83d9d86b0 cwd=C:\plan-fact-app
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[normalize] permission/preset: dropping legacy member "origin"
+[migrate] OK -> v3, events=6312, inheritedEventCount=0
+[normalize] applied=permission/preset(origin)
+[normalize] patched=none
+[write] C:\plan-fact-app\.tmp\stage\--C-plan-fact-app--\session-98287012-c957-4fd4-a739-05b83d9d86b0\session.v3.jsonl.zstd bytes=3838413
+[verify] frames=2 rows=6313 readHeader=current version=3
+[verify] events=6312 (expected 6312)
+[verify] OK
+[hist v0] reasoning-chunks=12303 assistant/chunk=8984 tool-call-chunks=4644 text-chunks=1536 tool/result=1185 tool/call=1179 step/start=1150 step/end=1150 assistant/message=1143 agent/inbox/spliced=136 user/message=71 turn/start=67 turn/end=67 approval/asked=46 approval/decided=46 llm/retry=10 llm/retry-started=10 compaction/prune=6 request/header=5 todo/write=5 session/end-seed=4 goal/change=2 permission/preset=1 sandbox/mode=1 approval/policy=1 session/title=1 request/context=1 session/title-llm-request=1 compaction/start=1 compaction/summary=1 compaction/end=1
+[hist v3] tool/result=1185 tool/call=1179 step/start=1150 step/end=1150 assistant/message=1143 agent/inbox/spliced=136 user/message=71 turn/start=67 turn/end=67 approval/asked=46 approval/decided=46 assistant/attempt=18 llm/retry=10 llm/retry-started=10 compaction/prune=6 request/header=5 todo/write=5 session/end-seed=4 system/message=3 goal/change=2 permission/preset=1 sandbox/mode=1 approval/policy=1 session/title=1 request/context=1 session/title-llm-request=1 compaction/start=1 compaction/summary=1 compaction/end=1
+[check] user/message v0=71 v3=71
+[check] surface rows v0=2399 v3=2402
+===== --C-pro-plan-- / 1700b8cb-5b11-4cb8-9931-482c35c48620 =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-pro-plan--\1700b8cb-5b11-4cb8-9931-482c35c48620\session.jsonl.zstd
+[read] frames=1788 bytes=768684 rows=2108
+[read] header version=0 id=1700b8cb-5b11-4cb8-9931-482c35c48620 cwd=C:\pro-plan
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[migrate] OK -> v3, events=136, inheritedEventCount=0
+[normalize] applied=none
+[normalize] patched=subagent/descriptor.version 2->3 x1
+[descriptor] {"version":3,"mode":"continuable","provider":"spawn","label":"Анализ UpdateQueue из макросов","agentProvider":"deepseek-official","agentModel":"deepseek-v4-flash"}
+[write] C:\plan-fact-app\.tmp\stage\--C-pro-plan--\1700b8cb-5b11-4cb8-9931-482c35c48620\session.v3.jsonl.zstd bytes=285086
+[verify] frames=2 rows=137 readHeader=current version=3
+[verify] events=136 (expected 136)
+[verify] OK
+[hist v0] reasoning-chunks=911 tool-call-chunks=646 assistant/chunk=351 text-chunks=65 tool/call=26 tool/result=26 step/start=23 assistant/message=23 step/end=23 agent/inbox/spliced=2 user/message=2 subagent/descriptor=1 session/end-seed=1 sandbox/mode=1 approval/policy=1 turn/start=1 session/title=1 request/header=1 request/context=1 turn/end=1
+[hist v3] tool/call=26 tool/result=26 step/start=23 assistant/message=23 step/end=23 agent/inbox/spliced=2 system/message=2 user/message=2 subagent/descriptor=1 session/end-seed=1 sandbox/mode=1 approval/policy=1 turn/start=1 session/title=1 request/header=1 request/context=1 turn/end=1
+[check] user/message v0=2 v3=2
+[check] surface rows v0=51 v3=53
+===== --C-pro-plan-- / 85141e31-d58d-47ad-b1bc-ead25b360738 =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-pro-plan--\85141e31-d58d-47ad-b1bc-ead25b360738\session.jsonl.zstd
+[read] frames=1320 bytes=601786 rows=1564
+[read] header version=0 id=85141e31-d58d-47ad-b1bc-ead25b360738 cwd=C:\pro-plan
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[migrate] OK -> v3, events=107, inheritedEventCount=0
+[normalize] applied=none
+[normalize] patched=subagent/descriptor.version 2->3 x1
+[descriptor] {"version":3,"mode":"continuable","provider":"spawn","label":"Анализ расчёта дат и CPM","agentProvider":"deepseek-official","agentModel":"deepseek-v4-flash"}
+[write] C:\plan-fact-app\.tmp\stage\--C-pro-plan--\85141e31-d58d-47ad-b1bc-ead25b360738\session.v3.jsonl.zstd bytes=231987
+[verify] frames=2 rows=108 readHeader=current version=3
+[verify] events=107 (expected 107)
+[verify] OK
+[hist v0] reasoning-chunks=769 tool-call-chunks=416 assistant/chunk=236 text-chunks=37 tool/call=22 tool/result=22 step/start=16 assistant/message=16 step/end=16 agent/inbox/spliced=2 user/message=2 subagent/descriptor=1 session/end-seed=1 sandbox/mode=1 approval/policy=1 turn/start=1 session/title=1 request/header=1 request/context=1 turn/end=1
+[hist v3] tool/call=22 tool/result=22 step/start=16 assistant/message=16 step/end=16 agent/inbox/spliced=2 system/message=2 user/message=2 subagent/descriptor=1 session/end-seed=1 sandbox/mode=1 approval/policy=1 turn/start=1 session/title=1 request/header=1 request/context=1 turn/end=1
+[check] user/message v0=2 v3=2
+[check] surface rows v0=40 v3=42
+===== --C-pro-plan-- / fc40befe-4a53-4974-8769-02b79d528c2d =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-pro-plan--\fc40befe-4a53-4974-8769-02b79d528c2d\session.jsonl.zstd
+[read] frames=1878 bytes=813620 rows=2159
+[read] header version=0 id=fc40befe-4a53-4974-8769-02b79d528c2d cwd=C:\pro-plan
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[migrate] OK -> v3, events=109, inheritedEventCount=0
+[normalize] applied=none
+[normalize] patched=subagent/descriptor.version 2->3 x1
+[descriptor] {"version":3,"mode":"continuable","provider":"spawn","label":"Анализ шаблонов/календаря/отчётов","agentProvider":"deepseek-official","agentModel":"deepseek-v4-flash"}
+[write] C:\plan-fact-app\.tmp\stage\--C-pro-plan--\fc40befe-4a53-4974-8769-02b79d528c2d\session.v3.jsonl.zstd bytes=308307
+[verify] frames=2 rows=110 readHeader=current version=3
+[verify] events=109 (expected 109)
+[verify] OK
+[hist v0] reasoning-chunks=1098 tool-call-chunks=590 assistant/chunk=310 text-chunks=53 tool/call=26 tool/result=26 step/start=14 assistant/message=14 step/end=14 agent/inbox/spliced=2 user/message=2 subagent/descriptor=1 session/end-seed=1 sandbox/mode=1 approval/policy=1 turn/start=1 session/title=1 request/header=1 request/context=1 turn/end=1
+[hist v3] tool/call=26 tool/result=26 step/start=14 assistant/message=14 step/end=14 agent/inbox/spliced=2 system/message=2 user/message=2 subagent/descriptor=1 session/end-seed=1 sandbox/mode=1 approval/policy=1 turn/start=1 session/title=1 request/header=1 request/context=1 turn/end=1
+[check] user/message v0=2 v3=2
+[check] surface rows v0=42 v3=44
+===== --C-pro-plan-- / session-5dfd54ee-d155-4702-8c27-4ef829dff00f =====
+[read] C:\Users\Admin1\AppData\Roaming\DeepSeek Harness\dsh-home\sessions\--C-pro-plan--\session-5dfd54ee-d155-4702-8c27-4ef829dff00f\session.jsonl.zstd
+[read] frames=16336 bytes=6430884 rows=22690
+[read] header version=0 id=session-5dfd54ee-d155-4702-8c27-4ef829dff00f cwd=C:\pro-plan
+[catalog] currentVersion=3
+[catalog] readHeader status=migration-required
+[normalize] permission/preset: dropping legacy member "origin"
+[migrate] OK -> v3, events=3306, inheritedEventCount=0
+[normalize] applied=permission/preset(origin)
+[normalize] patched=none
+[write] C:\plan-fact-app\.tmp\stage\--C-pro-plan--\session-5dfd54ee-d155-4702-8c27-4ef829dff00f\session.v3.jsonl.zstd bytes=1786211
+[verify] frames=2 rows=3307 readHeader=current version=3
+[verify] events=3306 (expected 3306)
+[verify] OK
+[hist v0] reasoning-chunks=7919 tool-call-chunks=5338 assistant/chunk=5237 text-chunks=892 step/start=606 step/end=606 assistant/message=605 tool/call=604 tool/result=604 agent/inbox/spliced=106 user/message=55 turn/start=26 approval/asked=26 approval/decided=26 turn/end=25 todo/write=3 session/title=2 request/header=2 goal/change=2 permission/preset=1 sandbox/mode=1 approval/policy=1 request/context=1 session/title-llm-request=1
+[hist v3] step/start=606 step/end=606 assistant/message=605 tool/call=604 tool/result=604 agent/inbox/spliced=106 user/message=55 turn/start=26 turn/end=26 approval/asked=26 approval/decided=26 todo/write=3 system/message=2 session/title=2 request/header=2 goal/change=2 permission/preset=1 sandbox/mode=1 approval/policy=1 request/context=1 session/title-llm-request=1
+[check] user/message v0=55 v3=55
+[check] surface rows v0=1264 v3=1266

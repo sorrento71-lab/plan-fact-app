@@ -1,0 +1,58 @@
+# Что НЕ попадает в репозиторий.
+#
+# Главное правило: в проект не заливаются файлы с персональными данными
+# сотрудников (график, табели, план-факт, база) и всё, что можно пересобрать.
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.venv-desktop/
+.pipcache/
+Pipfile.lock.bak
+
+# ---------- Node / фронтенд ----------
+node_modules/
+frontend/build/
+frontend/.env.local
+npm-debug.log*
+yarn-error.log*
+
+# ---------- Сборки настольных версий ----------
+desktop-a/build/
+desktop-a/dist/
+desktop-a/webapp/
+desktop-a/.webprofile/
+desktop-b/build/
+desktop-b/dist/
+desktop-b/screenshots/
+build/
+dist/
+
+# ---------- Журналы, временные файлы, копии ----------
+*.log
+*.pid
+.tmp/
+tmp/
+*.tmp
+cookies.json
+
+# ---------- Данные с персональной информацией сотрудников ----------
+# (в репозиторий не заливаются: ФИО, явки, табель)
+backend/plan_fact.db
+backend/*.db
+backend/*.db-journal
+backend/табель.xlsx
+backend/табель_original.bak
+backup/
+ГРАФИК_ФОРМА A3.xlsx
+ГРАФИК_ФОРМА A3.backup.xlsx
+Копия ГРАФИК_ФОРМА A3.xlsx
+план-факт *.xlsx
+Табель_*.xlsx
+План-Факт_презентация.pptx
+
+# ---------- Служебные файлы Excel/Word ----------
+~$*.xlsx
+~$*.docx
