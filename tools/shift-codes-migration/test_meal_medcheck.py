@@ -63,6 +63,12 @@ plan_ve = add_employee('Второй Виктор')
 plan_otpusk = add_employee('Отпускной Олег')
 plan_bolnichny = add_employee('Больничный Борис')
 plan_empty = add_employee('Пустой Пётр')
+# «б/с» в базе встречается в разном регистре — оба варианта не должны попадать
+plan_bs = add_employee('БезСодержания Борис')
+plan_bs_upper = add_employee('БезСодержанияВерх Влад')
+plan_bs_short = add_employee('БезСодержанияКоротко Ким')
+# подмены имён больше нет: Жажин должен выводиться как Жажин
+plan_zhazhin = add_employee('Жажин Максим')
 db.commit()
 
 NOV = date(2026, 11, 5)
@@ -71,6 +77,10 @@ add_plan(plan_ya, NOV, 'Я')
 add_plan(plan_ve, NOV, 'В')
 add_plan(plan_otpusk, NOV, 'О')
 add_plan(plan_bolnichny, NOV, 'Б')
+add_plan(plan_bs, NOV, 'б/с')
+add_plan(plan_bs_upper, NOV, 'Б/С')
+add_plan(plan_bs_short, NOV, 'БС')
+add_plan(plan_zhazhin, NOV, 'Я')
 db.add(models.Fact(employee_id=fact_only.id, date=NOV, fact_hours=11.0,
                    start_time='08:00', end_time='19:00'))
 db.commit()
@@ -91,6 +101,11 @@ check('план «В» (доп смена) попадает в питание', 
 check('факт без плана попадает в питание', 'Фактов Факт' in nov_names)
 check('отпуск «О» исключён', 'Отпускной Олег' not in nov_names)
 check('сотрудник без плана и факта не попадает', 'Пустой Пётр' not in nov_names)
+check('план «б/с» исключён', 'БезСодержания Борис' not in nov_names)
+check('план «Б/С» исключён', 'БезСодержанияВерх Влад' not in nov_names)
+check('план «БС» исключён', 'БезСодержанияКоротко Ким' not in nov_names)
+check('подмены имён нет: Жажин Максим попадает как есть', 'Жажин Максим' in nov_names)
+check('Бочанова Руслана в списке нет', 'Бочанов Руслан' not in nov_names)
 
 oct_names = [e['name'] for e in pf.collect_meal_employees(db, OCT)]
 print('  октябрь, список:', oct_names)
@@ -108,6 +123,8 @@ else:
     check('в файле есть «В»-смена', 'Второй Виктор' in text)
     check('в файле есть факт', 'Фактов Факт' in text)
     check('отпуска нет в файле', 'Отпускной Олег' not in text)
+    check('«б/с» нет в файле', 'БезСодержания' not in text)
+    check('в файле Жажин (без подмены)', 'Жажин Максим' in text and 'Бочанов Руслан' not in text)
 
 # ------------------------------------------------------- медосмотр на копии листа
 shutil.copy2(REAL_XLSX, TEST_XLSX)

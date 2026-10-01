@@ -13,8 +13,9 @@ function MealExport({ refreshToken }) {
 
     // Список сотрудников для исключения
     const excludedEmployees = ['Корнеева Елена'];
-    // Подмена имён в списке питания (в базе — Жажин, в кафе — Бочанов)
-    const nameAliases = { 'Жажин Максим': 'Бочанов Руслан' };
+    // Планы, при которых сотрудник в питание не попадает:
+    // «О» — отпуск, «Б/С» — без сохранения заработной платы.
+    const excludedPlanTypes = ['О', 'Б/С', 'БС'];
 
     useEffect(() => {
         const today = new Date();
@@ -44,11 +45,11 @@ function MealExport({ refreshToken }) {
 
             const employeesMap = {};
             response.data.forEach(row => {
-                // Проверяем план
-                const planType = row.plan_type ? row.plan_type.toUpperCase() : '';
+                // Проверяем план: регистр и пробелы не важны («б/с» = «Б/С» = «БС»)
+                const planType = row.plan_type ? row.plan_type.toUpperCase().replace(/[\s.]/g, '') : '';
 
-                // Исключаем сотрудников с планом "О" (отпуск)
-                if (planType === 'О') {
+                // Исключаем отпуск («О») и «б/с» — те же правила, что в выгрузке
+                if (excludedPlanTypes.includes(planType)) {
                     return; // пропускаем этого сотрудника
                 }
 
@@ -63,7 +64,8 @@ function MealExport({ refreshToken }) {
                 );
 
                 if ((hasPlan || hasFact || hasProductionStage) && !isExcluded) {
-                    const displayName = nameAliases[row.employee_name] || row.employee_name;
+                    // ФИО выводим как в справочнике — подмены имён больше нет
+                    const displayName = row.employee_name;
                     if (!employeesMap[displayName]) {
                         employeesMap[displayName] = {
                             name: displayName

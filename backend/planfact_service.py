@@ -330,8 +330,11 @@ def get_stats(db) -> dict:
 # ПИТАНИЕ
 # ============================================================
 MEAL_EXCLUDED_EMPLOYEES = ['Корнеева Елена']
-# Подмена имён в списке питания (в базе — Жажин, в кафе — Бочанов)
-MEAL_NAME_ALIASES = {'Жажин Максим': 'Бочанов Руслан'}
+# Планы, при которых сотрудник в список питания не попадает:
+# «О» — отпуск, «Б/С» — без сохранения заработной платы.
+# Значение из базы нормализуется: регистр и пробелы не важны, «БС» = «Б/С».
+MEAL_EXCLUDED_PLAN_TYPES = ('О', 'Б/С', 'БС')
+# Подмены имён в списке питания больше нет: выводим ФИО как в справочнике.
 
 
 def collect_meal_employees(db, target_date: date) -> list[dict]:
@@ -360,10 +363,11 @@ def collect_meal_employees(db, target_date: date) -> list[dict]:
 
         # Проверяем план
         plan_type = row.get('plan_type', '').upper() if row.get('plan_type') else ''
+        plan_key = plan_type.replace(' ', '').replace('.', '')
 
-        # Исключаем сотрудников с планом "О" (отпуск) - как на фронтенде
-        if plan_type == 'О':
-            print(f"  ⏭️ Исключен (отпуск): {employee_name}")
+        # Исключаем отпуск («О») и «б/с» — как и в предпросмотре на экране
+        if plan_key in MEAL_EXCLUDED_PLAN_TYPES:
+            print(f"  ⏭️ Исключен (план {plan_key}): {employee_name}")
             continue
 
         # Проверяем, есть ли данные для включения в список
@@ -375,7 +379,7 @@ def collect_meal_employees(db, target_date: date) -> list[dict]:
         is_excluded = any(name in employee_name for name in MEAL_EXCLUDED_EMPLOYEES)
 
         if (has_plan or has_fact or has_production_stage) and not is_excluded:
-            display_name = MEAL_NAME_ALIASES.get(employee_name, employee_name)
+            display_name = employee_name
             if display_name not in employees_map:
                 employees_map[display_name] = {
                     'name': display_name
