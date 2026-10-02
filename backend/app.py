@@ -882,10 +882,13 @@ def export_current_week(
 @app.post("/upload/schedule/")
 async def upload_schedule(
         file: UploadFile = File(...),
+        year: Optional[int] = None,
+        month: Optional[int] = None,
         db: Session = Depends(get_db)
 ):
     print(f"📁 Получен файл: {file.filename}")
     print(f"📦 Content-Type: {file.content_type}")
+    print(f"📅 Запрошен лист за: {year}-{month}")
 
     if not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail="Файл должен быть в формате Excel")
@@ -902,7 +905,7 @@ async def upload_schedule(
         print(f"💾 Временный файл: {tmp_path}")
 
     try:
-        result = parse_schedule_file(tmp_path, db)
+        result = parse_schedule_file(tmp_path, db, year=year, month=month)
         print(f"✅ Результат парсинга: {result}")
         if result.get('status') == 'error':
             # Это ошибка входных данных пользователя, а не сервера
@@ -923,7 +926,8 @@ async def upload_schedule(
 
         return {
             "status": "success",
-            "message": f"Загружено: {result.get('employees', 0)} сотрудников, "
+            "message": f"Загружено из листа «{sheet.strip()}»: "
+                       f"{result.get('employees_found', result.get('employees', 0))} сотрудников, "
                        f"{result.get('records', 0)} записей плана"
                        + (f". {synced['message']}" if synced.get('status') == 'success' else
                           (f". Лист графика не обновлён: {synced.get('message')}" if synced.get('message') else "")),

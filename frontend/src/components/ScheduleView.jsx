@@ -289,7 +289,9 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
             const formData = new FormData();
             formData.append('file', file);
             const response = await axios.post(`${API_URL}/upload/schedule/`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+                headers: { 'Content-Type': 'multipart/form-data' },
+                // в файлах графика много месяцев: грузим лист того, что открыт в шапке
+                params: { year, month: month + 1 }
             });
             showMessage(`✅ ${response.data.message}`);
             await load();
@@ -491,7 +493,7 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                 <span>Совпадает: <b style={{ color: '#2e7d32' }}>{stats.ok || 0}</b></span>
                 {loading && <span style={{ color: '#1565c0' }}>⏳ обновление…</span>}
                 <label
-                    title="Загрузить график смен из файла Excel (форма А3): данные сразу попадут в лист графика и в план"
+                    title={`Загрузить график смен из файла Excel (форма А3). Будет взят лист за выбранный месяц — ${String(month + 1).padStart(2, '0')}.${year}; данные сразу попадут в лист графика и в план`}
                     style={{
                         marginLeft: 'auto', padding: '2px 10px', fontSize: '11px', fontWeight: 'bold',
                         background: uploading ? '#ccc' : '#2e7d32', color: '#fff',

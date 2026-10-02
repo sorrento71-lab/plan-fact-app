@@ -41,6 +41,21 @@ def get_latest_sheet(sheet_names):
     return latest_sheet
 
 
+def find_sheet_for_month(sheet_names, year, month):
+    """Лист ровно за указанный месяц.
+
+    Имена листов в файлах бывают с лишними пробелами («10.2026 »),
+    поэтому сравниваем без них.
+    """
+    if not year or not month:
+        return None
+    wanted = f'{int(month):02d}.{int(year)}'
+    for sheet_name in sheet_names:
+        if str(sheet_name).strip() == wanted:
+            return sheet_name
+    return None
+
+
 def normalize_plan_type(value: str, day=None) -> str:
     """Код плана из файла.
 
@@ -165,7 +180,13 @@ def get_or_create_employee(db, name: str, position: str, department: str):
         return employee, True
 
 
-def parse_schedule_file(filepath: str, db=None):
+def parse_schedule_file(filepath: str, db=None, year=None, month=None):
+    """Загружает план из файла графика.
+
+    year и month задают лист: если они переданы, берётся лист ровно за этот
+    месяц (и возвращается понятная ошибка, если такого листа в файле нет).
+    Без них поведение прежнее — берётся самый новый лист файла.
+    """
     print(f"📂 Открываем файл: {filepath}")
 
     if not os.path.exists(filepath):
@@ -188,11 +209,23 @@ def parse_schedule_file(filepath: str, db=None):
         all_sheets = xl.sheet_names
         print(f"📋 Найдено листов: {all_sheets}")
 
-        latest_sheet = get_latest_sheet(all_sheets)
-        if not latest_sheet:
-            return {"status": "error", "message": "No valid sheets found"}
-
-        print(f"📄 Выбран самый новый лист: {latest_sheet}")
+        # Лист выбираем по месяцу, который сейчас открыт в приложении:
+        # в файлах графика обычно лежит много месяцев, и «самый новый лист»
+        # приводил к загрузке не того месяца (например, ноября вместо октября).
+        if year and month:
+            latest_sheet = find_sheet_for_month(all_sheets, year, month)
+            if not latest_sheet:
+                available = ', '.join(str(name).strip() for name in all_sheets if str(name).strip())
+                return {"status": "error",
+                        "message": f"В файле нет листа за {int(month):02d}.{int(year)}. "
+                                   f"Выберите в шапке месяц, который есть в файле, "
+                                   f"или загрузите другой файл. Листы в файле: {available}"}
+            print(f"📄 Лист выбранного месяца: {latest_sheet}")
+        else:
+            latest_sheet = get_latest_sheet(all_sheets)
+            if not latest_sheet:
+                return {"status": "error", "message": "No valid sheets found"}
+            print(f"📄 Выбран самый новый лист: {latest_sheet}")
 
         month_year = parse_month_year_from_sheet(latest_sheet)
         if not month_year:
@@ -432,6 +465,7 @@ def parse_schedule_file(filepath: str, db=None):
         return {
             "status": "success",
             "employees": total_employees,
+            "employees_found": employees_found,
             "records": total_records,
             "days": len(date_cols),
             "sheet_processed": latest_sheet,
