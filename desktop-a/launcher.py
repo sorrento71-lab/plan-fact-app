@@ -14,12 +14,20 @@
      адресной строки). Если не вышло ничего — понятное сообщение, а не белый экран;
   4. при закрытии окна останавливает оба сервера и завершает процесс.
 
-Порты 8000/3000 выбраны не случайно: frontend/src/config.js жёстко использует
-API_URL = http://127.0.0.1:8000, а backend/app.py разрешает CORS-источник
-http://127.0.0.1:3000. Оба файла менять нельзя, поэтому порты фиксированы.
+Порты 8000/3000 выбраны не случайно: frontend/src/config.js обращается к API по
+адресу http://<хост>:8000 (хост берётся из адресной строки), поэтому окно и
+другие машины видят один и тот же API. backend/app.py разрешает CORS для
+localhost и частных адресов локальной сети, поэтому список адресов править не
+нужно — меняется только IP компьютера.
+
+Сетевой режим (по умолчанию): серверы слушают все интерфейсы (0.0.0.0), окно
+открывается на http://127.0.0.1:3000, а другие участники заходят браузером на
+http://<адрес этого ПК>:3000. Только этот компьютер: --local-only.
 
 Режимы запуска:
-  python launcher.py                  — обычный запуск (окно)
+  python launcher.py                  — обычный запуск (окно, доступно в сети)
+  python launcher.py --local-only     — только этот компьютер (без доступа из сети)
+  python launcher.py --host 0.0.0.0   — явно указать адрес прослушивания
   python launcher.py --selftest       — поднять серверы, проверить HTTP, выйти (окно не открывать)
   python launcher.py --no-window      — то же, но серверы работают до Ctrl+C
   python launcher.py --window-test    — открыть окно, убедиться, что оно появилось, закрыть (автотест окна)
@@ -53,9 +61,16 @@ WINDOW_HEIGHT = 950
 WINDOW_MIN_SIZE = (1100, 700)
 
 DEFAULT_API_PORT = 8000   # жёстко задан в frontend/src/config.js
-DEFAULT_WEB_PORT = 3000   # разрешён в CORS backend/app.py
-WEB_HOST = "127.0.0.1"
-API_HOST = "127.0.0.1"
+DEFAULT_WEB_PORT = 3000
+# По умолчанию серверы слушают все интерфейсы: окно открывается на этой машине
+# (127.0.0.1), а остальные участники заходят браузером на
+# http://<адрес этой машины>:3000 — интерфейс сам обращается к API на :8000.
+# Режим «только этот компьютер»: --local-only (или PLANFACT_HOST=127.0.0.1).
+BIND_ALL_HOST = "0.0.0.0"
+LOCAL_HOST = "127.0.0.1"
+BIND_HOST = BIND_ALL_HOST   # адрес, на котором реально слушают серверы
+WEB_HOST = LOCAL_HOST       # адрес для окна и проверок
+API_HOST = LOCAL_HOST
 
 BACKEND_START_TIMEOUT = 90.0     # сек: первый импорт pandas/openpyxl небыстрый
 PROBE_TIMEOUT = 4.0
@@ -133,6 +148,20 @@ class Paths:
         return self.webapp_dir / "index.html"
 
 
+def _project_root_near(exe_dir: Path, levels: int = 4) -> Path | None:
+    """Папка проекта рядом со сборкой: в ней те же данные, что у веб-версии.
+
+    Собранный exe обычно лежит в <проект>\\desktop-a\\dist\\План-Факт, поэтому
+    поднимаемся на несколько уровней вверх и ищем backend\\plan_fact.db.
+    """
+    current = exe_dir
+    for _ in range(levels):
+        current = current.parent
+        if (current / "backend" / "plan_fact.db").is_file():
+            return current
+    return None
+
+
 def resolve_paths() -> Paths:
     """backend/ и webapp/ ищутся рядом с launcher.py, а в exe — в папке сборки."""
     if getattr(sys, "frozen", False):
@@ -142,10 +171,17 @@ def resolve_paths() -> Paths:
         if meipass:
             candidates.append(Path(meipass))
         candidates.append(exe_dir)
-        for base in candidates:
-            if (base / "backend").is_dir():
-                return Paths(base / "backend", base / "webapp", base, "exe")
-        # ничего не нашли — вернём наиболее вероятный путь, ошибку покажет main()
+        base = candidates[0]
+        for candidate in candidates:
+            if (candidate / "backend").is_dir():
+                base = candidate
+                break
+        # Интерфейс всегда берём из сборки, а данные — из папки проекта,
+        # если exe запущен внутри неё: тогда веб-версия и настольное окно
+        # работают с одной базой и одним графиком.
+        project_root = _project_root_near(exe_dir)
+        if project_root is not None:
+            return Paths(project_root / "backend", base / "webapp", project_root, "exe")
         base = candidates[0]
         return Paths(base / "backend", base / "webapp", base, "exe")
 
@@ -162,6 +198,34 @@ def log_path() -> Path:
 # ----------------------------------------------------------------------------
 # Сеть: проверка портов и HTTP-пробы
 # ----------------------------------------------------------------------------
+def lan_addresses() -> list[str]:
+    """IPv4-адреса этой машины в локальной сети — по ним заходят другие ПК."""
+    addresses: list[str] = []
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            address = info[4][0]
+            if address and not address.startswith("127.") and address not in addresses:
+                addresses.append(address)
+    except OSError:
+        pass
+    if not addresses:
+        # Запасной способ: узнать адрес, через который выходим в сеть.
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            sock.connect(("8.8.8.8", 80))
+            address = sock.getsockname()[0]
+            if address and not address.startswith("127."):
+                addresses.append(address)
+        except OSError:
+            pass
+        finally:
+            try:
+                sock.close()
+            except OSError:
+                pass
+    return addresses
+
+
 def port_is_free(host: str, port: int) -> bool:
     """True, если порт можно занять. Без SO_REUSEADDR — иначе Windows соврёт."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -254,7 +318,7 @@ class Backend:
 
         config = uvicorn.Config(
             app=backend_app.app,
-            host=API_HOST,
+            host=BIND_HOST,
             port=self.port,
             log_level="warning",
             log_config=None,
@@ -359,7 +423,7 @@ class StaticServer:
         handler = lambda *args, **kwargs: SpaRequestHandler(  # noqa: E731
             *args, directory=str(self.webapp_dir), **kwargs
         )
-        httpd = http.server.ThreadingHTTPServer((WEB_HOST, self.port), handler)
+        httpd = http.server.ThreadingHTTPServer((BIND_HOST, self.port), handler)
         httpd.daemon_threads = True
         self.httpd = httpd
         self.thread = threading.Thread(target=httpd.serve_forever, kwargs={"poll_interval": 0.3},
@@ -714,6 +778,12 @@ def build_parser() -> argparse.ArgumentParser:
                         help=f"порт статики (по умолчанию {DEFAULT_WEB_PORT}; менять не рекомендуется)")
     parser.add_argument("--no-reuse", action="store_true",
                         help="не переиспользовать уже запущенные серверы на 8000/3000, а падать с ошибкой")
+    parser.add_argument("--host", default=None,
+                        help="адрес, на котором слушают серверы: 0.0.0.0 (по умолчанию) — программа "
+                             "доступна и с других машин по http://<адрес этого ПК>:3000; "
+                             "127.0.0.1 — только этот компьютер")
+    parser.add_argument("--local-only", action="store_true",
+                        help="слушать только этот компьютер (то же, что --host 127.0.0.1)")
     parser.add_argument("--window", choices=("auto", "pywebview", "browser"), default="auto",
                         help="auto (по умолчанию): pywebview, при неудаче — окно-приложение Edge/Chrome; "
                              "pywebview: только нативное окно; browser: сразу окно-приложение")
@@ -750,6 +820,17 @@ def main(argv: list[str] | None = None) -> int:
     api_port = args.api_port or int(os.environ.get("PLANFACT_API_PORT", DEFAULT_API_PORT))
     web_port = args.web_port or int(os.environ.get("PLANFACT_WEB_PORT", DEFAULT_WEB_PORT))
 
+    # Адрес прослушивания: по умолчанию все интерфейсы (доступно и с других
+    # машин), --local-only / PLANFACT_HOST=127.0.0.1 — только этот компьютер.
+    global BIND_HOST, WEB_HOST, API_HOST
+    bind_host = (args.host or os.environ.get("PLANFACT_HOST")
+                 or (LOCAL_HOST if args.local_only else BIND_ALL_HOST))
+    BIND_HOST = bind_host
+    if bind_host in (BIND_ALL_HOST, "::", ""):
+        WEB_HOST = API_HOST = LOCAL_HOST      # окно и проверки — через 127.0.0.1
+    else:
+        WEB_HOST = API_HOST = bind_host
+
     # Модальные окна с ошибками показываем только в обычном оконном режиме:
     # в --selftest / --no-window / --window-test вывод идёт в консоль и лог.
     show_window = not (args.selftest or args.no_window or args.window_test)
@@ -759,6 +840,18 @@ def main(argv: list[str] | None = None) -> int:
     LOG.info("=" * 62)
     LOG.info(f"Лог: {log_path()}")
     LOG.info(f"Порты: бэкенд {api_port}, статика {web_port}")
+    if bind_host in (BIND_ALL_HOST, "::", ""):
+        LOG.info("Доступ: этот компьютер и локальная сеть")
+        addresses = lan_addresses()
+        if addresses:
+            for address in addresses:
+                LOG.info(f"   другие машины: http://{address}:{web_port}  (API: http://{address}:{api_port})")
+            LOG.info("   (если не открывается с другой машины — разрешите порты в брандмауэре Windows)")
+        else:
+            LOG.info("   сетевые адреса не найдены — проверьте подключение к сети")
+    else:
+        LOG.info(f"Доступ: только {bind_host} (с других машин не подключаются)")
+        LOG.info("   чтобы открыть доступ в сети, запустите без --local-only")
 
     paths = resolve_paths()
     LOG.info(f"Режим: {'exe (PyInstaller)' if paths.mode == 'exe' else 'python (исходники)'}")
@@ -792,7 +885,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         # ---------------- бэкенд на 8000 ----------------
-        if port_is_free(API_HOST, api_port):
+        if port_is_free(BIND_HOST, api_port):
             LOG.info(f"Запускаю бэкенд на http://{API_HOST}:{api_port} ...")
             backend.start()
             ready, note = backend.wait_ready(args.timeout)
@@ -830,7 +923,7 @@ def main(argv: list[str] | None = None) -> int:
                 )
 
         # ---------------- статика на 3000 ----------------
-        if port_is_free(WEB_HOST, web_port):
+        if port_is_free(BIND_HOST, web_port):
             LOG.info(f"Запускаю отдачу статики на http://{WEB_HOST}:{web_port} ...")
             static.start()
             url = f"http://{WEB_HOST}:{web_port}/index.html"
@@ -860,8 +953,8 @@ def main(argv: list[str] | None = None) -> int:
                     "Порт 3000 занят",
                     f"Порт {web_port} уже занят{port_owner_hint(web_port)}, и /index.html на нём не отвечает "
                     f"({note}).\n\n"
-                    "Прототипу нужен именно порт 3000: backend/app.py разрешает CORS только для "
-                    "http://127.0.0.1:3000 и http://127.0.0.1:8000.\n\n"
+                    "Прототипу нужен именно порт 3000: за ним закреплён адрес интерфейса "
+                    "(http://<адрес этой машины>:3000).\n\n"
                     "Что сделать:\n"
                     "  • остановите обычную веб-версию (C:\\plan-fact-app\\stop.bat) и запустите прототип снова;\n"
                     "  • чужие процессы прототип не завершает намеренно.",

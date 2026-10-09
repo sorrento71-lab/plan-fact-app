@@ -74,13 +74,18 @@ hiddenimports = [
     'parse_schedule',
     'parse_journal',
     'plan_fact_export',
+    'planfact_service',
     'schedule_grid',
+    'shift_codes',
     'export_timesheet',
-    # чтение/запись таблиц
+    'medcheck_export',
+    # чтение/запись таблиц и документов
     'pandas',
     'openpyxl',
     'et_xmlfile',
     'xlrd',
+    'docx',
+    'lxml',
     # окно
     'webview',
     'clr_loader',

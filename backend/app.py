@@ -48,22 +48,49 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI(title="План-Факт API")
 
 # ============================================================
-# CORS - расширенные настройки для удаленного доступа
+# CORS - локальная сеть без ручного списка адресов
 # ============================================================
+# Разрешаем браузерам обращаться к API с любой машины сети: localhost,
+# собственные адреса этого компьютера (в том числе вроде 30.77.123.68),
+# частные диапазоны (10.x, 172.16-31.x, 192.168.x), имена машин без домена
+# (PC581, pc581.local) и IPv6 — на любом порту. Список адресов править не
+# нужно: при смене IP или имени компьютера он обновляется сам.
+def _own_addresses() -> list[str]:
+    """Адреса этой машины: по ним к API обращаются остальные компьютеры."""
+    addresses: set[str] = set()
+    try:
+        for info in socket.getaddrinfo(socket.gethostname(), None):
+            address = info[4][0]
+            if address:
+                addresses.add(address)
+    except OSError:
+        pass
+    return sorted(addresses)
+
+
+def _build_local_origin_re() -> str:
+    parts = [
+        r"localhost",
+        r"127\.0\.0\.1",
+        r"\[::1\]",
+        r"10\.\d{1,3}\.\d{1,3}\.\d{1,3}",
+        r"172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}",
+        r"192\.168\.\d{1,3}\.\d{1,3}",
+        r"\[[0-9a-fA-F:]+\]",
+        r"[A-Za-z0-9][A-Za-z0-9\-]{0,62}",
+        r"[A-Za-z0-9][A-Za-z0-9\-]{0,62}\.local",
+    ]
+    parts.extend(re.escape(address) for address in _own_addresses())
+    return r"^http://(" + "|".join(parts) + r")(:\d{1,5})?$"
+
+
+LOCAL_ORIGIN_RE = _build_local_origin_re()
+
 app.add_middleware(
     CORSMiddleware,
     # Без "*": с allow_credentials=True браузеры всё равно отклоняют
-    # запросы с wildcard-источником, поэтому указываем явный список.
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
-        "http://30.77.123.68:3000",
-        "http://30.77.123.68:8000",
-    ],
+    # запросы с wildcard-источником, поэтому источник отражаем по шаблону.
+    allow_origin_regex=LOCAL_ORIGIN_RE,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
