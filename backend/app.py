@@ -924,13 +924,22 @@ async def upload_schedule(
         elif sheet:
             print(f"🔁 Лист «{sheet}»: месяц не распознан, перенос в лист пропущен")
 
+        # Клиент без параметров месяца — это устаревшая страница в браузере:
+        # предупреждаем, иначе загрузка молча возьмёт самый новый лист файла
+        hint = ''
+        if year is None or month is None:
+            hint = (" Внимание: месяц не был передан — страница в браузере устарела, "
+                    "поэтому взят самый новый лист файла. Обновите страницу (Ctrl+F5) "
+                    "и повторите загрузку, чтобы взять лист выбранного месяца.")
+
         return {
             "status": "success",
             "message": f"Загружено из листа «{sheet.strip()}»: "
                        f"{result.get('employees_found', result.get('employees', 0))} сотрудников, "
                        f"{result.get('records', 0)} записей плана"
                        + (f". {synced['message']}" if synced.get('status') == 'success' else
-                          (f". Лист графика не обновлён: {synced.get('message')}" if synced.get('message') else "")),
+                          (f". Лист графика не обновлён: {synced.get('message')}" if synced.get('message') else ""))
+                       + hint,
             "employees": result.get('employees', 0),
             "records": result.get('records', 0),
             "schedule": synced
