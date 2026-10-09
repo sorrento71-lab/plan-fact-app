@@ -35,7 +35,16 @@ engine = create_engine('sqlite:///:memory:')
 models.Base.metadata.create_all(engine)
 db = sessionmaker(bind=engine)()
 
-sheet = load_workbook(TEST_XLSX)['11.2026']
+
+def sheet_of(workbook, name):
+    """Лист по имени без учёта лишних пробелов («11.2026 » в рабочих файлах)."""
+    for sheet_name in workbook.sheetnames:
+        if str(sheet_name).strip() == name:
+            return workbook[sheet_name]
+    raise KeyError(name)
+
+
+sheet = sheet_of(load_workbook(TEST_XLSX), '11.2026')
 header_row, day_cols, kept, max_row = sg._visible_layout(sheet, 2026, 11)
 emp_row = next(r for r in range(header_row + 2, max_row + 1)
                if sheet.cell(r, 3).value and str(sheet.cell(r, 3).value).strip())
@@ -54,7 +63,7 @@ ui_row = emp_row - header_row + 1     # координаты интерфейс�
 
 def cell_and_plan():
     wb = load_workbook(TEST_XLSX)
-    ws = wb['11.2026']
+    ws = sheet_of(wb, '11.2026')
     value = ws.cell(emp_row, day_col).value
     row = db.query(models.Plan).filter(models.Plan.date == date(2026, 11, 5)).first()
     return value, (row.plan_type if row else None)
@@ -69,7 +78,7 @@ for entered in ('11', '9', '8', 'Д', 'О', 'Я', 'В'):
           f'{"OK" if ok else "ОШИБКА"}')
 
 print('=== октябрь: правка ячейки (схема не меняется) ===')
-sheet10 = load_workbook(TEST_XLSX)['10.2026']
+sheet10 = sheet_of(load_workbook(TEST_XLSX), '10.2026')
 h10, d10, kept10, max10 = sg._visible_layout(sheet10, 2026, 10)
 r10 = next(r for r in range(h10 + 2, max10 + 1)
            if sheet10.cell(r, 3).value and str(sheet10.cell(r, 3).value).strip())
@@ -82,7 +91,7 @@ ui10 = kept10.index(col10) + 1
 sg.set_schedule_cell(3, ui10, '11', db=db, year=2026, month=10)
 row = db.query(models.Plan).filter(models.Plan.date == date(2026, 10, 5)).first()
 wb = load_workbook(TEST_XLSX)
-print('  введено 11 -> в листе', repr(wb['10.2026'].cell(r10, col10).value),
+print('  введено 11 -> в листе', repr(sheet_of(wb, '10.2026').cell(r10, col10).value),
       ', в плане', repr(row.plan_type if row else None))
 
 print('=== выгрузка «только ритмы» ===')
@@ -106,7 +115,7 @@ for month in (11, 10):
     # очищаем смены месяца в тестовой копии, чтобы было что расставлять
     wb3 = load_workbook(TEST_XLSX)
     title = f'{month:02d}.2026'
-    ws3 = wb3[title]
+    ws3 = sheet_of(wb3, title)
     h, days, _k, mx = sg._visible_layout(ws3, 2026, month)
     for r in range(h + 2, mx + 1):
         if ws3.cell(r, 3).value and str(ws3.cell(r, 3).value).strip():

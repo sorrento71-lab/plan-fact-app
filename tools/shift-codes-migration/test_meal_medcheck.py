@@ -134,7 +134,17 @@ me.SCHEDULE_FILE = TEST_XLSX           # модуль импортировал �
 sg.SCHEDULE_FILE = TEST_XLSX
 
 wb = load_workbook(TEST_XLSX)
-ws = wb['11.2026']
+
+
+def sheet_of(workbook, name):
+    """Лист по имени без учёта лишних пробелов («11.2026 » в рабочих файлах)."""
+    for sheet_name in workbook.sheetnames:
+        if str(sheet_name).strip() == name:
+            return workbook[sheet_name]
+    raise KeyError(name)
+
+
+ws = sheet_of(wb, '11.2026')
 header_row, day_cols, _kept, max_row = sg._visible_layout(ws, 2026, 11)
 named = [(r, str(ws.cell(r, 3).value).strip()) for r in range(header_row + 2, max_row + 1)
          if ws.cell(r, 3).value and str(ws.cell(r, 3).value).strip()]
@@ -228,7 +238,7 @@ else:
     free_day = day_cols[free_col]
     before_days = me.medcheck_summary(db, 2026, 11, with_days=True)['by_day']
     wb2 = load_workbook(TEST_XLSX)
-    wb2['11.2026'].cell(other_row, free_col).value = '11'   # старый код в ноябре
+    sheet_of(wb2, '11.2026').cell(other_row, free_col).value = '11'   # старый код в ноябре
     wb2.save(TEST_XLSX)
     after_days = me.medcheck_summary(db, 2026, 11, with_days=True)['by_day']
     check(f'цифра «11» в листе {free_day:02d}.11 посчитана как смена',

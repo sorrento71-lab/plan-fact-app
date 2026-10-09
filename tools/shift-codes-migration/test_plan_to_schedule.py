@@ -31,8 +31,17 @@ engine = create_engine('sqlite:///:memory:')
 models.Base.metadata.create_all(engine)
 db = sessionmaker(bind=engine)()
 
+
+def sheet_of(workbook, name):
+    """Лист по имени без учёта лишних пробелов («11.2026 » в рабочих файлах)."""
+    for sheet_name in workbook.sheetnames:
+        if str(sheet_name).strip() == name:
+            return workbook[sheet_name]
+    raise KeyError(name)
+
+
 wb = load_workbook(TEST_XLSX)
-ws = wb['11.2026']
+ws = sheet_of(wb, '11.2026')
 header_row, day_cols, kept, max_row = sg._visible_layout(ws, 2026, 11)
 emp_row = next(r for r in range(header_row + 2, max_row + 1)
                if ws.cell(r, 3).value and str(ws.cell(r, 3).value).strip())
@@ -48,7 +57,7 @@ print('  ', result['message'][:120])
 plan = db.query(models.Plan).filter(models.Plan.date == date(2026, 11, 5)).first()
 wb2 = load_workbook(TEST_XLSX)
 print('   в базе:', repr(plan.plan_type),
-      '| в листе:', repr(wb2['11.2026'].cell(emp_row, day5_col).value))
+      '| в листе:', repr(sheet_of(wb2, '11.2026').cell(emp_row, day5_col).value))
 
 print('=== update_plan: ввод «Д» за 06.11.2026 ===')
 result = pf.update_plan(db, emp_name, '2026-11-06', 'Д')
@@ -56,7 +65,7 @@ plan = db.query(models.Plan).filter(models.Plan.date == date(2026, 11, 6)).first
 day6_col = next(c for c, d in day_cols.items() if d == 6)
 wb3 = load_workbook(TEST_XLSX)
 print('   в базе:', repr(plan.plan_type),
-      '| в листе:', repr(wb3['11.2026'].cell(emp_row, day6_col).value))
+      '| в листе:', repr(sheet_of(wb3, '11.2026').cell(emp_row, day6_col).value))
 
 print('=== перенос плана из базы в лист (ноябрь) ===')
 # в базе за 5-е стоит «11» (старый код) — лист считаем эталоном
@@ -67,7 +76,7 @@ summary = sg.plan_to_schedule_summary(db, 2026, 11)
 print('  ', {k: v for k, v in summary.items() if k != 'cells'}, '(ожидается changed: 0)')
 
 print('=== перенос плана из базы в лист (октябрь, старые коды) ===')
-ws10 = load_workbook(TEST_XLSX)['10.2026']
+ws10 = sheet_of(load_workbook(TEST_XLSX), '10.2026')
 h10, d10, _k10, max10 = sg._visible_layout(ws10, 2026, 10)
 r10 = next(r for r in range(h10 + 2, max10 + 1)
            if ws10.cell(r, 3).value and str(ws10.cell(r, 3).value).strip())
