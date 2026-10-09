@@ -282,28 +282,40 @@ def parse_schedule_file(filepath: str, db=None, year=None, month=None):
         # ============================================================
         # НАХОДИМ СТРОКУ С СОТРУДНИКАМИ
         # ============================================================
+        # Заголовок «Сотрудник» в разных файлах стоит по-разному: в строке с
+        # датами, отдельной строкой ниже, бывает в верхнем регистре. Если его
+        # не найти, начинали перебор на строку позже и теряли первого человека.
         employee_row_idx = None
-        for row_idx in range(date_row_idx + 1, min(date_row_idx + 10, len(df))):
-            val = str(df.iloc[row_idx, 2]).strip() if len(df) > row_idx and pd.notna(df.iloc[row_idx, 2]) else ""
-            if val in ['Cотрудник', 'Сотрудник']:
-                employee_row_idx = row_idx
+        for row_idx in range(date_row_idx, min(date_row_idx + 10, len(df))):
+            for col_idx in (0, 1, 2):
+                if col_idx >= len(df.columns) or len(df) <= row_idx:
+                    continue
+                value = df.iloc[row_idx, col_idx]
+                text = str(value).strip().lower() if pd.notna(value) else ""
+                if text in ['сотрудник', 'cотрудник', 'фио']:
+                    employee_row_idx = row_idx
+                    break
+            if employee_row_idx is not None:
                 break
 
         if employee_row_idx is None:
-            employee_row_idx = date_row_idx + 2
+            # заголовка нет — начинаем со строки сразу под датами
+            employee_row_idx = date_row_idx + 1
 
         print(f"📋 Строка с сотрудниками: {employee_row_idx}")
 
         # Находим всех сотрудников
+        skip_words = ['сотрудник', 'cотрудник', 'фио', 'участки', 'участок',
+                      'должность', 'итого', 'всего', 'nan', '']
         name_rows = []
         for i in range(employee_row_idx + 1, len(df)):
             val_c = str(df.iloc[i, 2]).strip() if pd.notna(df.iloc[i, 2]) else ""
             val_b = str(df.iloc[i, 1]).strip() if pd.notna(df.iloc[i, 1]) else ""
 
-            if val_c and val_c not in ['Cотрудник', 'Сотрудник', 'nan', '']:
+            if val_c and val_c.lower() not in skip_words:
                 name_rows.append((i, 2, val_c))
-            elif val_b and val_b not in ['Cотрудник', 'Сотрудник', 'nan', '', 'УЧАСТКИ', 'Участок']:
-                if not val_c or val_c in ['Cотрудник', 'Сотрудник', 'nan', '']:
+            elif val_b and val_b.lower() not in skip_words:
+                if not val_c or val_c.lower() in skip_words:
                     name_rows.append((i, 1, val_b))
 
         print(f"👤 Найдено сотрудников: {len(name_rows)}")
@@ -333,7 +345,7 @@ def parse_schedule_file(filepath: str, db=None, year=None, month=None):
         for row_idx, name_col, emp_name in name_rows:
             emp_name = emp_name.strip()
 
-            if not emp_name or emp_name in ['Cотрудник', 'Сотрудник', 'nan', '']:
+            if not emp_name or emp_name.lower() in skip_words:
                 continue
 
             position = str(df.iloc[row_idx, 3]).strip() if pd.notna(df.iloc[row_idx, 3]) else ""
