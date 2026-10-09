@@ -468,6 +468,12 @@ function App() {
                     </button>
                 ))}
 
+                {/* Таблица недельная: сотрудник виден только в тех неделях, где у него есть смены */}
+                <span style={{ color: '#666', fontSize: '10px' }} title="Таблица показывает сотрудников выбранной недели. Смены в других неделях ищите в соответствующих кнопках — данные не теряются.">
+                    в таблице — сотрудники недели «{WEEK_LABELS[currentWeek]}»: <b>{employees.length}</b> из{' '}
+                    <b>{new Set(data.map(r => r.employee_name)).size}</b> за месяц
+                </span>
+
                 <span style={{ width: 1, height: 20, background: '#d7dde4' }} />
 
                 <button
