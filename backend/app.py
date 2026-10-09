@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, UploadFile, File, HTTPException
+from fastapi import FastAPI, Depends, Request, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
@@ -77,6 +77,27 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+# ------------------------------------------------------------
+# Какой месяц смотрит клиент.
+# Нужно для устаревших страниц: они не передают месяц при загрузке графика,
+# и сервер брал бы самый новый лист файла. Ключ — адрес клиента,
+# значение — (год, месяц) из его последних запросов плана-факта и графика.
+# ------------------------------------------------------------
+CLIENT_MONTHS: dict = {}
+
+
+def remember_client_month(request: Request, year, month) -> None:
+    if not year or not month:
+        return
+    host = request.client.host if request.client else 'unknown'
+    CLIENT_MONTHS[host] = (int(year), int(month))
+
+
+def client_month(request: Request):
+    host = request.client.host if request.client else 'unknown'
+    return CLIENT_MONTHS.get(host)
 
 
 # ============================================================
@@ -184,6 +205,7 @@ def get_facts(
 # ============================================================
 @app.get("/plan-fact/")
 def get_plan_fact(
+        request: Request,
         db: Session = Depends(get_db),
         employee: Optional[str] = None,
         department: Optional[str] = None,
@@ -192,6 +214,7 @@ def get_plan_fact(
         year: Optional[int] = None,
         month: Optional[int] = None
 ):
+    remember_client_month(request, year, month)
     return service.get_plan_fact(
         db=db,
         employee=employee,
@@ -226,6 +249,7 @@ def get_timesheet(
 # ============================================================
 @app.get("/schedule/grid/")
 def get_schedule_grid(
+        request: Request,
         db: Session = Depends(get_db),
         year: Optional[int] = None,
         month: Optional[int] = None
@@ -235,6 +259,7 @@ def get_schedule_grid(
         today = date.today()
         year, month = today.year, today.month
 
+    remember_client_month(request, year, month)
     result = load_schedule_grid(db=db, year=year, month=month)
     if result.get('error'):
         raise HTTPException(status_code=404, detail=result['error'])
@@ -881,6 +906,7 @@ def export_current_week(
 # ============================================================
 @app.post("/upload/schedule/")
 async def upload_schedule(
+        request: Request,
         file: UploadFile = File(...),
         year: Optional[int] = None,
         month: Optional[int] = None,
@@ -889,6 +915,17 @@ async def upload_schedule(
     print(f"📁 Получен файл: {file.filename}")
     print(f"📦 Content-Type: {file.content_type}")
     print(f"📅 Запрошен лист за: {year}-{month}")
+
+    # Страница может быть старой и не передавать месяц. Тогда берём месяц,
+    # который этот же клиент смотрел последним (из его запросов плана-факта
+    # и графика), — иначе сервер молча возьмёт самый новый лист файла.
+    from_client = False
+    if year is None or month is None:
+        remembered = client_month(request)
+        if remembered is not None:
+            year, month = remembered
+            from_client = True
+            print(f"↩️ Месяц не передан — беру из последних запросов клиента: {year}-{month}")
 
     if not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail="Файл должен быть в формате Excel")
@@ -927,7 +964,11 @@ async def upload_schedule(
         # Клиент без параметров месяца — это устаревшая страница в браузере:
         # предупреждаем, иначе загрузка молча возьмёт самый новый лист файла
         hint = ''
-        if year is None or month is None:
+        if from_client:
+            hint = (f" Месяц взят из последнего открытого на этой странице месяца "
+                    f"({int(month):02d}.{int(year)}) — после обновления страницы (Ctrl+F5) "
+                    f"он будет передаваться явно.")
+        elif year is None or month is None:
             hint = (" Внимание: месяц не был передан — страница в браузере устарела, "
                     "поэтому взят самый новый лист файла. Обновите страницу (Ctrl+F5) "
                     "и повторите загрузку, чтобы взять лист выбранного месяца.")
