@@ -12,7 +12,7 @@ function MealExport({ refreshToken }) {
     const [exporting, setExporting] = useState(false);
 
     // Список сотрудников для исключения
-    const excludedEmployees = ['Корнеева Елена'];
+    const excludedEmployees = ['Корнеева Елена', 'Миронов Тимофей'];
     // Планы, при которых сотрудник в питание не попадает:
     // «О» — отпуск, «Б» — больничный, «Б/С» — без сохранения заработной платы.
     const excludedPlanTypes = ['О', 'Б', 'Б/Л', 'БЛ', 'Б/С', 'БС'];
