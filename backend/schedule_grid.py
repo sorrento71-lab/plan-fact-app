@@ -281,14 +281,16 @@ def load_schedule_grid(db=None, year=None, month=None):
     employee_rows = {}
     for r in range(weekday_row + 1, max_row + 1):
         emp_name = ws.cell(r, 3).value
-        if emp_name and str(emp_name).strip():
-            employee_rows[r] = {
-                'name': str(emp_name).strip(),
-                'position': str(ws.cell(r, 4).value).strip() if ws.cell(r, 4).value else '',
-                'section': str(ws.cell(r, 2).value).strip() if ws.cell(r, 2).value else '',
-                'section_span': section_spans.get(r, 1),
-                'in_db': False,
-            }
+        name = str(emp_name).strip() if emp_name is not None else ''
+        # Пустые строки тоже отдаём: в них можно вписать нового сотрудника
+        # (клик по строке и по ячейке ФИО доступен и без ФИО).
+        employee_rows[r] = {
+            'name': name,
+            'position': str(ws.cell(r, 4).value).strip() if ws.cell(r, 4).value else '',
+            'section': str(ws.cell(r, 2).value).strip() if ws.cell(r, 2).value else '',
+            'section_span': section_spans.get(r, 1),
+            'in_db': False,
+        }
 
     # --- план из БД ---
     db_plans = {}
