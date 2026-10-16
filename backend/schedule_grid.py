@@ -788,12 +788,17 @@ def add_schedule_employee(name, position='', section='', db=None, year=None, mon
         departments[r] = current
 
     section_key = _norm(section or '')
+    last_of_section = None
     if not employee_rows:
         new_row = header_row + 3
     elif section_key:
         # встаём в конец блока нужного участка, а не в конец всего списка
         same = [r for r in employee_rows if _norm(departments.get(r, '')) == section_key]
-        new_row = (max(same) + 1) if same else (max(employee_rows) + 1)
+        if same:
+            last_of_section = max(same)
+            new_row = last_of_section + 1
+        else:
+            new_row = max(employee_rows) + 1
     else:
         new_row = max(employee_rows) + 1
 
@@ -825,11 +830,24 @@ def add_schedule_employee(name, position='', section='', db=None, year=None, mon
         dst = ws.cell(new_row, c)
         if src.has_style:
             dst._style = copy(src._style)
-    ws.cell(new_row, 2).value = section or None
+    # Подпись участка: у существующего участка она уже есть выше (и растянута
+    # объединением), поэтому в новой строке ничего не пишем — иначе сотрудник
+    # выглядит как отдельный участок. Для нового участка подпись ставим.
+    ws.cell(new_row, 2).value = None if last_of_section else (section or None)
     ws.cell(new_row, 3).value = name
     ws.cell(new_row, 4).value = position or None
     for c in range(5, ws.max_column + 1):
         ws.cell(new_row, c).value = None
+
+    # Продлеваем объединение подписи участка на новую строку — чтобы человек
+    # визуально остался внутри своего участка (колонки 1–2: участок и ФИО).
+    if last_of_section:
+        for merged in list(ws.merged_cells.ranges):
+            if (merged.min_row < merged.max_row and merged.max_row == last_of_section
+                    and merged.min_col <= 2):
+                ws.unmerge_cells(str(merged))
+                ws.merge_cells(start_row=merged.min_row, start_column=merged.min_col,
+                               end_row=merged.max_row + 1, end_column=merged.max_col)
 
     # фон дней новой строки — как у пустой строки: выходные/праздники, без цветов смен
     if year and month:

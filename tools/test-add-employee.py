@@ -102,8 +102,12 @@ wb = load_workbook(TEST_XLSX)
 ws = sg._sheet_for(wb, YEAR, MONTH)
 check('ФИО записано в строку', str(ws.cell(new_row, 3).value).strip() == 'Тестовый Новый',
       repr(ws.cell(new_row, 3).value))
-check('участок подписан', str(ws.cell(new_row, 2).value).strip() == target_section,
+check('подпись участка не дублируется в новой строке',
+      not (ws.cell(new_row, 2).value and str(ws.cell(new_row, 2).value).strip()),
       repr(ws.cell(new_row, 2).value))
+covered = [str(m) for m in ws.merged_cells.ranges
+           if m.min_col <= 2 and m.min_row < m.max_row and m.min_row <= new_row <= m.max_row]
+check('подпись участка растянута на новую строку', bool(covered), str(covered))
 check('должность записана', str(ws.cell(new_row, 4).value).strip() == 'Слесарь',
       repr(ws.cell(new_row, 4).value))
 
