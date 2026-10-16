@@ -467,9 +467,13 @@ EMPLOYEE_FIELD_COLS = {2: 'section', 3: 'name', 4: 'position'}
 
 
 def _is_placeholder_name(name):
-    """Служебное имя строки («вакансия» и подобное) — за ним нет человека."""
+    """Служебное имя строки («вакансия», строки-легенды) — за ним нет человека."""
     key = _norm(name)
-    return (not key) or key.startswith('вакан') or key in ('резерв', 'свободно', 'итого')
+    if (not key) or key.startswith('вакан') or key in ('резерв', 'свободно', 'итого'):
+        return True
+    # строки-легенды вида «Я-(основная смена )» и «В- (Доп.смена )»:
+    # в настоящих ФИО скобок не бывает
+    return 'смена' in key and ('(' in key or ')' in key)
 
 
 def _section_of_row(ws, file_row):

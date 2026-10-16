@@ -348,6 +348,11 @@ def parse_schedule_file(filepath: str, db=None, year=None, month=None):
             if not emp_name or emp_name.lower() in skip_words:
                 continue
 
+            # строки-легенды («Я-(основная смена )», «В- (Доп.смена )») — не люди
+            if 'смена' in emp_name.casefold() and ('(' in emp_name or ')' in emp_name):
+                print(f"  ⏭️ Пропущена служебная строка: {emp_name}")
+                continue
+
             position = str(df.iloc[row_idx, 3]).strip() if pd.notna(df.iloc[row_idx, 3]) else ""
 
             department = ""
