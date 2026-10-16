@@ -335,7 +335,103 @@ MEAL_EXCLUDED_EMPLOYEES = ['Корнеева Елена', 'Миронов Тим
 # Значение из базы нормализуется: регистр, пробелы и точки не важны,
 # поэтому «б/с», «Б/С» и «БС» — одно и то же.
 MEAL_EXCLUDED_PLAN_TYPES = ('О', 'Б', 'Б/Л', 'БЛ', 'Б/С', 'БС')
-# Подмены имён в списке питания больше нет: выводим ФИО как в справочнике.
+
+# Правила из интерфейса «Питание» (кнопки «Добавить», «Исключить», «Замена»):
+#   include — всегда в списке, даже если в графике отпуск/больничный/б-с;
+#   exclude — никогда в списке, даже если в графике есть работа;
+#   replace — вместо сотрудника в список пишется другой (replacement).
+MEAL_MODE_INCLUDE = 'include'
+MEAL_MODE_EXCLUDE = 'exclude'
+MEAL_MODE_REPLACE = 'replace'
+# Исключения, которые раньше были зашиты в код: при первом обращении они
+# переносятся в базу, дальше ими управляют кнопки в интерфейсе.
+MEAL_DEFAULT_EXCLUDED = list(MEAL_EXCLUDED_EMPLOYEES)
+
+
+def normalize_name(value) -> str:
+    """ФИО для сравнения: без лишних пробелов и без учёта регистра."""
+    return ' '.join(str(value or '').split()).casefold()
+
+
+def ensure_meal_defaults(db) -> None:
+    """Заводит изначальные исключения в базу (если их там ещё нет)."""
+    try:
+        changed = False
+        for name in MEAL_DEFAULT_EXCLUDED:
+            exists = db.query(models.MealOverride).filter(
+                models.MealOverride.employee_name == name).first()
+            if exists is None:
+                db.add(models.MealOverride(employee_name=name, mode=MEAL_MODE_EXCLUDE))
+                changed = True
+        if changed:
+            db.commit()
+    except Exception as exc:  # noqa: BLE001 — не роняем выгрузку из-за правил
+        db.rollback()
+        print(f"⚠️ Не удалось подготовить правила питания: {exc}")
+
+
+def get_meal_overrides(db) -> dict:
+    """Правила питания: {нормализованное имя: {'name', 'mode', 'replacement'}}."""
+    rules: dict = {}
+    try:
+        for rule in db.query(models.MealOverride).all():
+            key = normalize_name(rule.employee_name)
+            if key:
+                rules[key] = {
+                    'name': rule.employee_name,
+                    'mode': rule.mode or '',
+                    'replacement': rule.replacement or '',
+                }
+    except Exception as exc:  # noqa: BLE001
+        print(f"⚠️ Не удалось прочитать правила питания: {exc}")
+    return rules
+
+
+def list_meal_overrides(db) -> list:
+    """Правила питания списком — для интерфейса."""
+    ensure_meal_defaults(db)
+    rules = get_meal_overrides(db)
+    return [rules[key] for key in sorted(rules, key=lambda item: rules[item]['name'].casefold())]
+
+
+def save_meal_override(db, employee_name: str, mode: str, replacement: str = '') -> dict:
+    """Сохраняет правило питания сотрудника. mode='none' — правило удаляется."""
+    name = ' '.join(str(employee_name or '').split())
+    if not name:
+        return {'status': 'error', 'message': 'Не указан сотрудник'}
+
+    mode = (mode or '').strip().lower()
+    if mode not in (MEAL_MODE_INCLUDE, MEAL_MODE_EXCLUDE, MEAL_MODE_REPLACE, 'none'):
+        return {'status': 'error', 'message': f'Неизвестное действие: {mode}'}
+
+    rule = db.query(models.MealOverride).filter(
+        models.MealOverride.employee_name == name).first()
+
+    if mode == 'none':
+        if rule is not None:
+            db.delete(rule)
+            db.commit()
+        return {'status': 'success', 'message': f'{name}: правило убрано'}
+
+    replacement = ' '.join(str(replacement or '').split())
+    if mode == MEAL_MODE_REPLACE and not replacement:
+        return {'status': 'error', 'message': 'Не указан сотрудник для замены'}
+
+    if rule is None:
+        rule = models.MealOverride(employee_name=name)
+        db.add(rule)
+
+    rule.mode = mode
+    rule.replacement = replacement if mode == MEAL_MODE_REPLACE else None
+    db.commit()
+
+    if mode == MEAL_MODE_INCLUDE:
+        text = 'всегда в списке питания'
+    elif mode == MEAL_MODE_EXCLUDE:
+        text = 'исключён из питания'
+    else:
+        text = f'замена: {rule.replacement}'
+    return {'status': 'success', 'message': f'{name}: {text}'}
 
 
 def collect_meal_employees(db, target_date: date) -> list[dict]:
@@ -344,6 +440,9 @@ def collect_meal_employees(db, target_date: date) -> list[dict]:
     Отдельная функция нужна, чтобы правила отбора были ровно в одном месте:
     их использует и выгрузка в Excel, и предпросмотр списка на экране.
     """
+    ensure_meal_defaults(db)
+    overrides = get_meal_overrides(db)
+
     # Получаем ВСЕХ сотрудников через plan-fact (как на фронтенде)
     # Используем ту же логику, что и в get_plan_fact
     employees_data = get_plan_fact(
@@ -362,12 +461,17 @@ def collect_meal_employees(db, target_date: date) -> list[dict]:
         if not employee_name:
             continue
 
+        # Правило из интерфейса «Питание» для этого сотрудника (если есть)
+        rule = overrides.get(normalize_name(employee_name))
+        mode = rule['mode'] if rule else ''
+
         # Проверяем план
         plan_type = row.get('plan_type', '').upper() if row.get('plan_type') else ''
         plan_key = plan_type.replace(' ', '').replace('.', '')
 
-        # Исключаем отпуск («О») и «б/с» — как и в предпросмотре на экране
-        if plan_key in MEAL_EXCLUDED_PLAN_TYPES:
+        # Исключаем отпуск («О»), больничный и «б/с» — как и в предпросмотре.
+        # Исключение: сотрудник, добавленный кнопкой «Добавить», остаётся в списке.
+        if plan_key in MEAL_EXCLUDED_PLAN_TYPES and mode != MEAL_MODE_INCLUDE:
             print(f"  ⏭️ Исключен (план {plan_key}): {employee_name}")
             continue
 
@@ -376,17 +480,26 @@ def collect_meal_employees(db, target_date: date) -> list[dict]:
         has_fact = row.get('fact_hours', 0) > 0
         has_production_stage = row.get('production_stage', '') and row.get('production_stage', '').strip() != ''
 
-        # Проверяем, не исключен ли сотрудник по имени
-        is_excluded = any(name in employee_name for name in MEAL_EXCLUDED_EMPLOYEES)
+        if not (has_plan or has_fact or has_production_stage):
+            continue
 
-        if (has_plan or has_fact or has_production_stage) and not is_excluded:
-            display_name = employee_name
-            if display_name not in employees_map:
-                employees_map[display_name] = {
-                    'name': display_name
-                }
-                print(
-                    f"  ✅ Добавлен: {display_name} (план={plan_type}, факт={has_fact}, этапы={has_production_stage})")
+        # Кнопка «Исключить»: не попадает даже при работе в графике
+        if mode == MEAL_MODE_EXCLUDE:
+            print(f"  ⏭️ Исключен (правило): {employee_name}")
+            continue
+
+        # Кнопка «Замена»: вместо сотрудника в списке идёт другой
+        display_name = employee_name
+        if mode == MEAL_MODE_REPLACE and rule and rule.get('replacement'):
+            display_name = rule['replacement']
+            print(f"  🔁 Замена: {employee_name} → {display_name}")
+
+        if display_name not in employees_map:
+            employees_map[display_name] = {
+                'name': display_name
+            }
+            print(
+                f"  ✅ Добавлен: {display_name} (план={plan_type}, факт={has_fact}, этапы={has_production_stage})")
 
     # Получаем список сотрудников
     employees_list = list(employees_map.values())

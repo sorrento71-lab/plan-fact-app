@@ -692,6 +692,32 @@ def update_plan(request: PlanUpdateRequest, db: Session = Depends(get_db)):
 
 
 # ============================================================
+# ПРАВИЛА ПИТАНИЯ (кнопки «Добавить», «Исключить», «Замена»)
+# ============================================================
+class MealOverrideRequest(BaseModel):
+    employee_name: str
+    mode: str                        # include | exclude | replace | none
+    replacement: Optional[str] = ''  # только для mode='replace'
+
+
+@app.get("/meal/overrides/")
+def get_meal_overrides(db: Session = Depends(get_db)):
+    """Кто всегда в списке питания, кто исключён и у кого замена."""
+    return {"overrides": service.list_meal_overrides(db)}
+
+
+@app.post("/meal/overrides/")
+def save_meal_override(request: MealOverrideRequest, db: Session = Depends(get_db)):
+    """Сохраняет правило питания. mode='none' — правило убирается."""
+    result = service.save_meal_override(db, request.employee_name, request.mode,
+                                        request.replacement or '')
+    if result.get('status') == 'error':
+        raise HTTPException(status_code=400, detail=result['message'])
+    result['overrides'] = service.list_meal_overrides(db)
+    return result
+
+
+# ============================================================
 # ВЫГРУЗКА ПИТАНИЯ (КАФЕ) - ПОЛНАЯ СИНХРОНИЗАЦИЯ С ФРОНТЕНДОМ
 # ============================================================
 class ExportMealRequest(BaseModel):

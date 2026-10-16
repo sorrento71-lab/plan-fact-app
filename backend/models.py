@@ -30,3 +30,18 @@ class Fact(Base):
     end_time = Column(String, nullable=True)     # Уход (например, "17:00")
     fact_hours = Column(Float, default=0.0)      # Фактические часы (расчетные)
     production_stage = Column(String, nullable=True)  # НОВОЕ ПОЛЕ: Этапы производства
+
+
+class MealOverride(Base):
+    """Правило питания для сотрудника (кнопки «Добавить», «Исключить», «Замена»).
+
+    mode:
+      include — всегда попадает в список, даже если в графике отпуск/больничный;
+      exclude — не попадает в список, даже если в графике есть работа;
+      replace — вместо него в список пишется другой сотрудник (replacement).
+    """
+    __tablename__ = 'meal_overrides'
+    id = Column(Integer, primary_key=True)
+    employee_name = Column(String, unique=True, nullable=False)
+    mode = Column(String, nullable=False)
+    replacement = Column(String, nullable=True)
