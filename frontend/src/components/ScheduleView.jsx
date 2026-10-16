@@ -142,6 +142,17 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
         setEditValue('');
     };
 
+    // Списки для выпадающих полей: участки (колонка 1) и должности (колонка 3)
+    // берём из самого графика, чтобы значения совпадали с файлом
+    const gridOptions = (column) => {
+        if (!data || !data.cells) return [];
+        const values = data.cells
+            .filter((cell) => cell.c === column && cell.v)
+            .map((cell) => String(cell.v).trim())
+            .filter(Boolean);
+        return [...new Set(values)].sort((a, b) => a.localeCompare(b, 'ru'));
+    };
+
     const addEmployee = async () => {
         if (!newEmp.name.trim()) {
             showMessage('❌ Укажите ФИО сотрудника');
@@ -596,18 +607,28 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                     onChange={(e) => setNewEmp({ ...newEmp, name: e.target.value })}
                     style={{ padding: '3px 6px', border: '1px solid #c6cdd6', borderRadius: '3px', fontSize: '11px', width: '180px' }}
                 />
-                <input
-                    placeholder="Должность"
+                <select
                     value={newEmp.position}
                     onChange={(e) => setNewEmp({ ...newEmp, position: e.target.value })}
-                    style={{ padding: '3px 6px', border: '1px solid #c6cdd6', borderRadius: '3px', fontSize: '11px', width: '140px' }}
-                />
-                <input
-                    placeholder="Участок"
+                    title="Должность — выберите из списка"
+                    style={{ padding: '3px 6px', border: '1px solid #c6cdd6', borderRadius: '3px', fontSize: '11px', width: '160px' }}
+                >
+                    <option value="">Должность…</option>
+                    {gridOptions(3).map((value) => (
+                        <option key={value} value={value}>{value}</option>
+                    ))}
+                </select>
+                <select
                     value={newEmp.section}
                     onChange={(e) => setNewEmp({ ...newEmp, section: e.target.value })}
-                    style={{ padding: '3px 6px', border: '1px solid #c6cdd6', borderRadius: '3px', fontSize: '11px', width: '150px' }}
-                />
+                    title="Участок — сотрудник встанет в конец этого участка"
+                    style={{ padding: '3px 6px', border: '1px solid #c6cdd6', borderRadius: '3px', fontSize: '11px', width: '180px' }}
+                >
+                    <option value="">Участок…</option>
+                    {gridOptions(1).map((value) => (
+                        <option key={value} value={value}>{value}</option>
+                    ))}
+                </select>
                 <button
                     onClick={addEmployee}
                     disabled={saving}

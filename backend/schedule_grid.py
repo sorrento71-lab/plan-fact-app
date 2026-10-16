@@ -772,17 +772,56 @@ def add_schedule_employee(name, position='', section='', db=None, year=None, mon
     ws = _pick_sheet(wb, year, month)
     header_row, _ = _find_header(ws)
 
-    # последняя строка с сотрудником
-    last_row = header_row + 2
+    # Строки сотрудников и их участки: участок берём из колонки B, затем A —
+    # так же, как это делает парсер графика.
+    employee_rows = [r for r in range(header_row + 2, ws.max_row + 1)
+                     if ws.cell(r, 3).value and str(ws.cell(r, 3).value).strip()]
+    departments = {}
+    current = ''
     for r in range(header_row + 2, ws.max_row + 1):
-        if ws.cell(r, 3).value and str(ws.cell(r, 3).value).strip():
-            last_row = r
-    new_row = last_row + 1
+        for col in (2, 1):
+            value = ws.cell(r, col).value
+            text = str(value).strip() if value is not None else ''
+            if text and text.lower() != 'nan':
+                current = text
+                break
+        departments[r] = current
+
+    section_key = _norm(section or '')
+    if not employee_rows:
+        new_row = header_row + 3
+    elif section_key:
+        # встаём в конец блока нужного участка, а не в конец всего списка
+        same = [r for r in employee_rows if _norm(departments.get(r, '')) == section_key]
+        new_row = (max(same) + 1) if same else (max(employee_rows) + 1)
+    else:
+        new_row = max(employee_rows) + 1
+
+    # если место занято (следующий участок, служебная строка) — вставляем строку
+    # со сдвигом. openpyxl не переносит объединённые ячейки и не двигает их
+    # значения, поэтому снимаем объединения ниже точки вставки, запоминаем
+    # значения их первых ячеек (там названия участков) и восстанавливаем после.
+    if ws.cell(new_row, 3).value and str(ws.cell(new_row, 3).value).strip():
+        merged_below = []
+        for merged in list(ws.merged_cells.ranges):
+            if merged.min_row >= new_row:
+                merged_below.append((merged.min_row, merged.min_col, merged.max_row,
+                                     merged.max_col,
+                                     ws.cell(merged.min_row, merged.min_col).value))
+                ws.unmerge_cells(str(merged))
+
+        ws.insert_rows(new_row, 1)
+
+        for min_row, min_col, max_row_, max_col, value in merged_below:
+            ws.cell(min_row + 1, min_col).value = value
+            ws.merge_cells(start_row=min_row + 1, start_column=min_col,
+                           end_row=max_row_ + 1, end_column=max_col)
 
     # переносим оформление строки-образца
     from copy import copy
+    style_row = new_row - 1 if new_row > header_row + 2 else header_row + 2
     for c in range(1, ws.max_column + 1):
-        src = ws.cell(last_row, c)
+        src = ws.cell(style_row, c)
         dst = ws.cell(new_row, c)
         if src.has_style:
             dst._style = copy(src._style)
@@ -791,6 +830,21 @@ def add_schedule_employee(name, position='', section='', db=None, year=None, mon
     ws.cell(new_row, 4).value = position or None
     for c in range(5, ws.max_column + 1):
         ws.cell(new_row, c).value = None
+
+    # фон дней новой строки — как у пустой строки: выходные/праздники, без цветов смен
+    if year and month:
+        try:
+            theme_colors = _theme_colors(wb)
+            _h, day_cols, _kept, _mx = _visible_layout(ws, int(year), int(month))
+            for c, day in (day_cols or {}).items():
+                base = _background_fill(ws, c, header_row + 1, theme_colors)
+                if not base and (_weekday_short(int(year), int(month), day) or '') in ('сб', 'вс'):
+                    base = WEEKEND_FILL_FALLBACK
+                cell = ws.cell(new_row, c)
+                cell.fill = (PatternFill('solid', fgColor=base) if base
+                             else PatternFill(fill_type=None))
+        except Exception as exc:  # noqa: BLE001 — вид строки не важнее самой вставки
+            print(f"⚠️ Не удалось выставить фон новой строки: {exc}")
     try:
         wb.save(SCHEDULE_FILE)
     except PermissionError:
