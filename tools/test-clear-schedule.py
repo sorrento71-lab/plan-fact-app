@@ -88,6 +88,16 @@ def survey(path):
                 data['weekday_total'] += 1
     if data['weekend_colors']:
         data['weekend_color'] = max(data['weekend_colors'], key=data['weekend_colors'].get)
+    # значения правее дней месяца: колонка «Х», «Изменения в графике», подпись
+    last_day = max(day_cols)
+    data['extra_values'] = 0
+    for c in range(last_day + 1, ws.max_column + 1):
+        for r in range(header_row + 2, max_row + 1):
+            cell = ws.cell(r, c)
+            if isinstance(cell, MergedCell):
+                continue
+            if not sg._is_empty(cell.value):
+                data['extra_values'] += 1
     return data
 
 
@@ -116,6 +126,8 @@ check('фон выходных одного цвета', len(after['weekend_colo
 check('фон праздничных дней не потерян',
       after['background_filled'] >= before['background_filled'],
       f"{after['background_filled']} vs {before['background_filled']}")
+check('колонка «Х» и примечания очищены',
+      after['extra_values'] == 0, f"{after['extra_values']} (до очистки {before['extra_values']})")
 check('сотрудники на месте', after['names'] == before['names'],
       f"{after['names']} vs {before['names']}")
 

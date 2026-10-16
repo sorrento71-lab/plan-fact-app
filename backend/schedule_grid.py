@@ -1967,9 +1967,15 @@ def create_month_sheet(year, month):
 
 
 def _notes_columns(ws, day_cols, kept_cols):
-    """Колонки примечаний — всё, что правее колонок дней месяца."""
+    """Колонки справа от дней месяца: «Х», «Изменения в графике», подпись.
+
+    Берём все колонки правее последнего дня (а не только те, что попали в
+    kept_cols): в них тоже бывают данные — например, отметка «Х».
+    """
     last_day_col = max(day_cols) if day_cols else 0
-    return [c for c in kept_cols if c > last_day_col]
+    if not last_day_col:
+        return []
+    return [c for c in range(last_day_col + 1, ws.max_column + 1)]
 
 
 def clear_schedule_summary(db, year, month):
@@ -2061,6 +2067,18 @@ def clear_schedule_data(db, year, month, clear_plan=True, clear_notes=True, clea
                 changed = False
                 for r in range(header_row + 2, max_row + 1):
                     name = ws.cell(r, 3).value
+                    # Примечания и колонка «Х» чистятся во всех строках месяца
+                    # (значения там бывают и без ФИО), а смены — только в строках
+                    # сотрудников: в служебных строках смен не бывает.
+                    if clear_notes:
+                        for c in _notes_columns(ws, day_cols, kept_cols):
+                            cell = ws.cell(r, c)
+                            if isinstance(cell, MergedCell):
+                                continue
+                            if not _is_empty(cell.value):
+                                cell.value = None
+                                notes_cleared += 1
+                                changed = True
                     if not (name and str(name).strip()):
                         continue
                     if clear_shifts:
@@ -2083,12 +2101,6 @@ def clear_schedule_data(db, year, month, clear_plan=True, clear_notes=True, clea
                                     cell.fill = PatternFill('solid', fgColor=base)
                                 else:
                                     cell.fill = PatternFill(fill_type=None)
-                                changed = True
-                    if clear_notes:
-                        for c in _notes_columns(ws, day_cols, kept_cols):
-                            if not _is_empty(ws.cell(r, c).value):
-                                ws.cell(r, c).value = None
-                                notes_cleared += 1
                                 changed = True
                 if changed:
                     _ensure_backup()
