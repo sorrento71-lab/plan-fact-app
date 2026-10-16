@@ -41,6 +41,9 @@ VALUE_COLORS = {
     'б': 'FF0000',    # больничный — красный
     'б/с': 'FFC000',  # б/с — оранжевый
 }
+# Заливка выходных, если в листе своего фона нет: тот же цвет, каким выходные
+# рисует интерфейс (frontend/src/constants.js — «Выходной»).
+WEEKEND_FILL_FALLBACK = 'ADD8E6'
 
 
 def _theme_colors(wb):
@@ -2043,6 +2046,18 @@ def clear_schedule_data(db, year, month, clear_plan=True, clear_notes=True, clea
             ws = wb[wb.sheetnames[sheets.index(wanted)]]
             header_row, day_cols, kept_cols, max_row = _visible_layout(ws, year, month)
             if header_row is not None and day_cols:
+                theme_colors = _theme_colors(wb)
+                # Фон колонок: заливка выходных (и праздничных дней) остаётся,
+                # цвета смен убираются. Цвет берём из самого листа, а если у
+                # выходных своего фона нет — рисуем таким же, как интерфейс.
+                base_fill = {}
+                for c, day in day_cols.items():
+                    color = _background_fill(ws, c, header_row + 1, theme_colors)
+                    is_weekend = (_weekday_short(year, month, day) or '') in ('сб', 'вс')
+                    if not color and is_weekend:
+                        color = WEEKEND_FILL_FALLBACK
+                    base_fill[c] = color
+
                 changed = False
                 for r in range(header_row + 2, max_row + 1):
                     name = ws.cell(r, 3).value
@@ -2050,9 +2065,24 @@ def clear_schedule_data(db, year, month, clear_plan=True, clear_notes=True, clea
                         continue
                     if clear_shifts:
                         for c in day_cols:
-                            if not _is_empty(ws.cell(r, c).value):
-                                ws.cell(r, c).value = None
+                            cell = ws.cell(r, c)
+                            if isinstance(cell, MergedCell):
+                                continue
+                            # Фон возвращаем у всех клеток дней: у выходных — прежний,
+                            # у рабочих дней — без заливки. Иначе после очистки
+                            # остаются цвета смен, в том числе в пустых клетках.
+                            base = base_fill.get(c)
+                            want = str(base or '').upper()[-6:]
+                            color = (_fill_hex(cell, theme_colors) or '').upper()[-6:]
+                            if not _is_empty(cell.value):
+                                cell.value = None
                                 shifts_cleared += 1
+                                changed = True
+                            if color != want:
+                                if base:
+                                    cell.fill = PatternFill('solid', fgColor=base)
+                                else:
+                                    cell.fill = PatternFill(fill_type=None)
                                 changed = True
                     if clear_notes:
                         for c in _notes_columns(ws, day_cols, kept_cols):
