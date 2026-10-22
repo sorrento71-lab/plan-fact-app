@@ -1788,8 +1788,8 @@ def delete_schedule_employee(row, db=None, year=None, month=None):
 
     raw_name = ws.cell(file_row, 3).value
     name = str(raw_name).strip() if raw_name else ''
-    if not name:
-        return {'status': 'error', 'message': 'В строке нет ФИО сотрудника'}
+    # Пустую строку тоже можно удалить: в базе за ней ничего нет,
+    # из листа она просто убирается (ниже строки сдвинутся).
 
     shifts = sum(1 for c in day_cols if not _is_empty(ws.cell(file_row, c).value))
     section = _section_of_row(ws, file_row)
@@ -1844,7 +1844,10 @@ def delete_schedule_employee(row, db=None, year=None, month=None):
                 models.Plan.date >= start,
                 models.Plan.date <= end).count()
 
-    message = f'Сотрудник «{name}» удалён из графика (смен было {shifts})'
+    if name:
+        message = f'Сотрудник «{name}» удалён из графика (смен было {shifts})'
+    else:
+        message = f'Пустая строка удалена из графика (смен было {shifts})'
     if plans_left:
         message += f'. План в базе за этот месяц не тронут: {plans_left} записей'
     return {
@@ -2131,16 +2134,22 @@ def clear_schedule_data(db, year, month, clear_plan=True, clear_notes=True, clea
             header_row, day_cols, kept_cols, max_row = _visible_layout(ws, year, month)
             if header_row is not None and day_cols:
                 theme_colors = _theme_colors(wb)
-                # Фон колонок: заливка выходных (и праздничных дней) остаётся,
-                # цвета смен убираются. Цвет берём из самого листа, а если у
-                # выходных своего фона нет — рисуем таким же, как интерфейс.
+                # После очистки остаётся ТОЛЬКО заливка выходных (сб/вс):
+                # у всех остальных дней фон убирается полностью.
                 base_fill = {}
+                weekend_color = None
                 for c, day in day_cols.items():
-                    color = _background_fill(ws, c, header_row + 1, theme_colors)
                     is_weekend = (_weekday_short(year, month, day) or '') in ('сб', 'вс')
-                    if not color and is_weekend:
-                        color = WEEKEND_FILL_FALLBACK
-                    base_fill[c] = color
+                    if is_weekend:
+                        base_fill[c] = _background_fill(ws, c, header_row + 1, theme_colors)
+                        if base_fill[c] and not weekend_color:
+                            weekend_color = base_fill[c]
+                    else:
+                        base_fill[c] = None
+                for c, day in day_cols.items():
+                    if (base_fill.get(c) is None
+                            and (_weekday_short(year, month, day) or '') in ('сб', 'вс')):
+                        base_fill[c] = weekend_color or WEEKEND_FILL_FALLBACK
 
                 changed = False
                 for r in range(header_row + 2, max_row + 1):

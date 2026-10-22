@@ -123,9 +123,9 @@ check('цвета смен убраны (в том числе в пустых к
 check('все клетки выходных закрашены', after['weekend_filled'] == after['weekend_total'],
       f"{after['weekend_filled']} из {after['weekend_total']}")
 check('фон выходных одного цвета', len(after['weekend_colors']) == 1, str(after['weekend_colors']))
-check('фон праздничных дней не потерян',
-      after['background_filled'] >= before['background_filled'],
-      f"{after['background_filled']} vs {before['background_filled']}")
+check('заливка осталась только у выходных',
+      after['background_filled'] == 0,
+      f"рабочих дней с фоном: {after['background_filled']}")
 check('колонка «Х» и примечания очищены',
       after['extra_values'] == 0, f"{after['extra_values']} (до очистки {before['extra_values']})")
 check('сотрудники на месте', after['names'] == before['names'],
