@@ -433,7 +433,14 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
             color: cell.fc ? `#${cell.fc}` : '#222',
             fontWeight: cell.b || cell.v ? 'bold' : 'normal',
             fontStyle: cell.i ? 'italic' : 'normal',
-            border: '1px solid #e7eaee'
+            // Сотрудника нет в базе (или строка пустая) — ячейки без обрамления
+            border: (() => {
+                const rowInfo = employeeAt(cell.r);
+                if (!rowInfo) return 'none';
+                const rowName = (rowInfo.name || '').trim();
+                if (!rowName || !rowInfo.in_db) return 'none';
+                return '1px solid #e7eaee';
+            })(),
         };
         if (cell.cmp && CMP_MARK[cell.cmp]) Object.assign(style, CMP_MARK[cell.cmp]);
         if (cell.editable) style.cursor = 'pointer';
