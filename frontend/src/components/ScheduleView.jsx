@@ -433,10 +433,8 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
             color: cell.fc ? `#${cell.fc}` : '#222',
             fontWeight: cell.b || cell.v ? 'bold' : 'normal',
             fontStyle: cell.i ? 'italic' : 'normal',
-            // Сетка — по октябрь включительно; с ноября 2026 ячейки без обрамления
-            border: (year > 2026 || (year === 2026 && month + 1 >= 11))
-                ? 'none'
-                : '1px solid #e7eaee',
+            // Сетка во всех месяцах — тонкие светлые линии
+            border: '1px solid #e7eaee',
         };
         // Метки расхождений (график ≠ база) больше не обводят ячейки —
         // они видны только в подсказке при наведении
