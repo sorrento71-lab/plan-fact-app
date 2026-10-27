@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { API_URL } from '../config';
 import { usesNewShiftScheme, shiftLegend } from '../constants';
@@ -424,7 +424,7 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
     const cellStyle = (cell, m, day) => {
         const style = {
             padding: '1px 3px',
-            fontSize: '10px',
+            fontSize: '12px',
             lineHeight: 1.25,
             whiteSpace: 'nowrap',
             textAlign: 'center',
@@ -897,7 +897,7 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
             {/* Легенда */}
             <div style={{
                 display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px 12px',
-                flexShrink: 0, padding: '2px 10px', marginBottom: '4px', fontSize: '10px', color: '#555'
+                flexShrink: 0, padding: '2px 10px', marginBottom: '4px', fontSize: '12px', color: '#555'
             }}>
                 <span><b>Цвета графика:</b></span>
                 {newShiftScheme ? (
@@ -939,7 +939,7 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                         onClick={() => setSelected(null)}
                         title="Снять выделение"
                         style={{
-                            padding: '1px 8px', fontSize: '10px', cursor: 'pointer',
+                            padding: '1px 8px', fontSize: '12px', cursor: 'pointer',
                             background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '3px'
                         }}
                     >
@@ -951,7 +951,7 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
             {/* Таблица */}
             <div style={{ flex: 1, overflow: 'auto', border: '1px solid #ccc', borderRadius: '4px', background: 'white' }}>
                 <table style={{
-                    borderCollapse: 'separate', borderSpacing: 0, fontSize: '10px',
+                    borderCollapse: 'separate', borderSpacing: 0, fontSize: '12px',
                     tableLayout: 'fixed', width: '100%', minWidth: '980px'
                 }}>
                     {/* Колонки: закреплённые и служебные — фиксированной ширины,
