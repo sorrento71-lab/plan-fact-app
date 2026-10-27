@@ -433,8 +433,10 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
             color: cell.fc ? `#${cell.fc}` : '#222',
             fontWeight: cell.b || cell.v ? 'bold' : 'normal',
             fontStyle: cell.i ? 'italic' : 'normal',
-            // шапку (дни и даты) рисует отдельная строка, её не трогаем
-            border: 'none',
+            // Сетка — по октябрь включительно; с ноября 2026 ячейки без обрамления
+            border: (year > 2026 || (year === 2026 && month + 1 >= 11))
+                ? 'none'
+                : '1px solid #e7eaee',
         };
         if (cell.cmp && CMP_MARK[cell.cmp]) Object.assign(style, CMP_MARK[cell.cmp]);
         if (cell.editable) style.cursor = 'pointer';
