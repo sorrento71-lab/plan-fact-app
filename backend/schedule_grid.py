@@ -363,6 +363,8 @@ def load_schedule_grid(db=None, year=None, month=None):
                 font = cell.font
                 if font and font.bold:
                     item['b'] = 1
+                if font and font.italic:
+                    item['i'] = 1
                 fcolor = _color_hex(font.color, theme_colors) if font and font.color else None
                 if fcolor and fcolor != '000000':
                     item['fc'] = fcolor

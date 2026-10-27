@@ -432,6 +432,7 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
             backgroundColor: cellBackground(cell, day),
             color: cell.fc ? `#${cell.fc}` : '#222',
             fontWeight: cell.b || cell.v ? 'bold' : 'normal',
+            fontStyle: cell.i ? 'italic' : 'normal',
             border: cell.bd ? '1px solid #9aa3ad' : '1px solid #e3e6ea'
         };
         if (cell.cmp && CMP_MARK[cell.cmp]) Object.assign(style, CMP_MARK[cell.cmp]);
