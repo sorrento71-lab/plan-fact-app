@@ -433,7 +433,7 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
             color: cell.fc ? `#${cell.fc}` : '#222',
             fontWeight: cell.b || cell.v ? 'bold' : 'normal',
             fontStyle: cell.i ? 'italic' : 'normal',
-            border: '1px solid #e7eaee'
+            border: 'none'
         };
         if (cell.cmp && CMP_MARK[cell.cmp]) Object.assign(style, CMP_MARK[cell.cmp]);
         if (cell.editable) style.cursor = 'pointer';
