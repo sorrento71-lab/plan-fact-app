@@ -808,6 +808,19 @@ def add_schedule_employee(name, position='', section='', db=None, year=None, mon
     else:
         new_row = max(employee_rows) + 1
 
+    # Вторая строка сотрудника — «Вн. совм. <должность>» (в листе она курсивом).
+    # Вставлять нового человека между сотрудником и этой строкой нельзя: иначе
+    # его вторая строка остаётся у предыдущего. Ставим после неё.
+    def _is_vn_sovm(r):
+        for col in (2, 3, 4):
+            value = ws.cell(r, col).value
+            if value and 'совм' in str(value).lower():
+                return True
+        return False
+
+    if _is_vn_sovm(new_row):
+        new_row += 1
+
     # если место занято (следующий участок, служебная строка) — вставляем строку
     # со сдвигом. openpyxl не переносит объединённые ячейки и не двигает их
     # значения, поэтому снимаем объединения ниже точки вставки, запоминаем
@@ -854,6 +867,32 @@ def add_schedule_employee(name, position='', section='', db=None, year=None, mon
                 ws.unmerge_cells(str(merged))
                 ws.merge_cells(start_row=merged.min_row, start_column=merged.min_col,
                                end_row=merged.max_row + 1, end_column=merged.max_col)
+
+    # Вторая строка сотрудника — «Вн. совм. <должность>» курсивом, как в листе.
+    if position:
+        vn_row = new_row + 1
+        # если сразу под сотрудником стоит чужая строка — освобождаем место
+        if ws.cell(vn_row, 3).value and str(ws.cell(vn_row, 3).value).strip():
+            ws.insert_rows(vn_row, 1)
+            for merged in list(ws.merged_cells.ranges):
+                if merged.min_row >= vn_row:
+                    ws.unmerge_cells(str(merged))
+                    ws.merge_cells(start_row=merged.min_row + 1, start_column=merged.min_col,
+                                   end_row=merged.max_row + 1, end_column=merged.max_col)
+        for c in range(1, ws.max_column + 1):
+            src = ws.cell(new_row, c)
+            dst = ws.cell(vn_row, c)
+            if isinstance(dst, MergedCell):
+                continue
+            if src.has_style:
+                dst._style = copy(src._style)
+            if c != 4:
+                dst.value = None
+        vn_cell = ws.cell(vn_row, 4)
+        vn_cell.value = f'Вн. совм. {position}'
+        vn_font = copy(vn_cell.font)
+        vn_font.italic = True
+        vn_cell.font = vn_font
 
     # фон дней новой строки — как у пустой строки: выходные/праздники, без цветов смен
     if year and month:
