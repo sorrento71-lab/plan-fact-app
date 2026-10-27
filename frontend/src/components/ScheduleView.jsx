@@ -438,7 +438,9 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                 ? 'none'
                 : '1px solid #e7eaee',
         };
-        if (cell.cmp && CMP_MARK[cell.cmp]) Object.assign(style, CMP_MARK[cell.cmp]);
+        // Метки расхождений (график ≠ база) больше не обводят ячейки —
+        // они видны только в подсказке при наведении
+        // if (cell.cmp && CMP_MARK[cell.cmp]) Object.assign(style, CMP_MARK[cell.cmp]);
         if (cell.editable) style.cursor = 'pointer';
         if (m && m.rows > 1) style.height = `${m.rows * 18}px`;
         return style;
