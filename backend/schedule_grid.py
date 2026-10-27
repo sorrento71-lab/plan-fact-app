@@ -845,6 +845,7 @@ def add_schedule_employee(name, position='', section='', db=None, year=None, mon
 
     # переносим оформление строки-образца
     from copy import copy
+    from openpyxl.styles import Border as _Border
     style_row = new_row - 1 if new_row > header_row + 2 else header_row + 2
     for c in range(1, ws.max_column + 1):
         src = ws.cell(style_row, c)
