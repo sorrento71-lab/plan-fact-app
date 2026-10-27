@@ -888,6 +888,7 @@ def add_schedule_employee(name, position='', section='', db=None, year=None, mon
                 continue
             if src.has_style:
                 dst._style = copy(src._style)
+            dst.border = _Border()   # строка «Вн. совм.» в листе без рамок
             if c != 4:
                 dst.value = None
         vn_cell = ws.cell(vn_row, 4)
