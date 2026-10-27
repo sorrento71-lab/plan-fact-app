@@ -287,7 +287,7 @@ def load_schedule_grid(db=None, year=None, month=None):
         employee_rows[r] = {
             'name': name,
             'position': str(ws.cell(r, 4).value).strip() if ws.cell(r, 4).value else '',
-            'section': str(ws.cell(r, 2).value).strip() if ws.cell(r, 2).value else '',
+            'section': _section_of_row(ws, r),   # участок и для строк внутри объединения
             'section_span': section_spans.get(r, 1),
             'in_db': False,
         }
