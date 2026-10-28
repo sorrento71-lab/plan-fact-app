@@ -282,6 +282,11 @@ def load_schedule_grid(db=None, year=None, month=None):
     for r in range(weekday_row + 1, max_row + 1):
         emp_name = ws.cell(r, 3).value
         name = str(emp_name).strip() if emp_name is not None else ''
+        # Последние строки листа — обозначения смен («Я-(основная смена )»,
+        # «В- (Доп.смена )»): это не сотрудники, в таблицу их не берём.
+        name_key = name.casefold()
+        if name_key and 'смена' in name_key and ('(' in name or ')' in name):
+            continue
         # Пустые строки тоже отдаём: в них можно вписать нового сотрудника
         # (клик по строке и по ячейке ФИО доступен и без ФИО).
         employee_rows[r] = {
