@@ -444,6 +444,21 @@ def parse_schedule_file(filepath: str, db=None, year=None, month=None):
                 if not plan_str or plan_str == '0' or plan_str == 'nan':
                     continue
 
+                # Строка ниже может быть «Вн. совм. …» — её смены относятся
+                # к этому же сотруднику и тоже попадают в план
+                try:
+                    if row_idx + 1 < len(df) and col_idx < len(df.columns):
+                        vn_val = df.iloc[row_idx + 1, col_idx]
+                        vn_mark = df.iloc[row_idx + 1, 3] if len(df.columns) > 3 else None
+                        if (vn_mark is not None and not pd.isna(vn_mark)
+                                and 'совм' in str(vn_mark).lower()
+                                and vn_val is not None and not pd.isna(vn_val)):
+                            vn_str = str(vn_val).strip()
+                            if vn_str and vn_str != '0' and vn_str != 'nan':
+                                plan_str = vn_str
+                except Exception:
+                    pass
+
                 plan_type = normalize_plan_type(plan_str, target_date)
 
                 if not plan_type:
