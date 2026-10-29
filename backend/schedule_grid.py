@@ -995,28 +995,34 @@ def import_schedule_to_plan(db, year, month):
     added = updated = unchanged = 0
     plan_without_graf = 0
 
+    last_employee = None
     for r in range(header_row + 2, max_row + 1):
         raw_name = ws.cell(r, 3).value
         name = str(raw_name).strip() if raw_name else ''
         if not name:
-            continue
-
-        key = name.lower()
-        employee = employees.get(key)
-        if employee is None:
-            position = ws.cell(r, 4).value
-            department = ws.cell(r, 2).value
-            max_order += 1
-            employee = models.Employee(
-                name=name,
-                position=str(position).strip() if position else '',
-                department=str(department).strip() if department else '',
-                order=max_order,
-            )
-            db.add(employee)
-            db.flush()
-            employees[key] = employee
-            created_employees.append(name)
+            # строка «Вн. совм. …» под сотрудником — её смены его же
+            mark = ws.cell(r, 4).value
+            if last_employee is None or not mark or 'совм' not in str(mark).lower():
+                continue
+            employee = last_employee
+        else:
+            key = name.lower()
+            employee = employees.get(key)
+            if employee is None:
+                position = ws.cell(r, 4).value
+                department = ws.cell(r, 2).value
+                max_order += 1
+                employee = models.Employee(
+                    name=name,
+                    position=str(position).strip() if position else '',
+                    department=str(department).strip() if department else '',
+                    order=max_order,
+                )
+                db.add(employee)
+                db.flush()
+                employees[key] = employee
+                created_employees.append(name)
+            last_employee = employee
 
         for c, day in day_cols.items():
             if c not in col_index:
