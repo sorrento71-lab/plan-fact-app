@@ -84,10 +84,32 @@ def collect_medcheck_rows(db, year, month, day=None):
                     start_times[_norm_text(ids[emp_id])] = Counter(clean).most_common(1)[0][0]
 
     rows = []
+    last_entry = None
     for r in range(header_row + 2, max_row + 1):
         name = ws.cell(r, 3).value
         name = str(name).strip() if name else ''
         if not name:
+            # Строка «Вн. совм. …» под сотрудником — это его же смены
+            # (внешнее совместительство): добавляем их к нему.
+            mark = ws.cell(r, 4).value
+            if last_entry is not None and mark and 'совм' in str(mark).lower():
+                extra = []
+                for c, d in day_cols.items():
+                    value = ws.cell(r, c).value
+                    text = '' if value is None else str(value).strip()
+                    if not text:
+                        continue
+                    code = shift_codes.canonical(text, date(year, month, d))
+                    if code.upper().replace('Ё', 'Е') not in shift_keys:
+                        continue
+                    if day is not None and d != day:
+                        continue
+                    extra.append(code)
+                if extra:
+                    merged = set(last_entry['shifts']) | {s.upper() for s in extra}
+                    last_entry['shifts'] = sorted(merged, key=_shift_sort_key)
+                    if day is None:
+                        last_entry['days'] += len(extra)
             continue
         # «вакансия» и подобные служебные строки — не люди: в именной документ
         # медосмотра они не попадают (та же проверка, что и в сетке графика)
@@ -115,14 +137,15 @@ def collect_medcheck_rows(db, year, month, day=None):
             continue
 
         position = ws.cell(r, 4).value
-        rows.append({
+        last_entry = {
             'name': name,
             'position': str(position).strip() if position else '',
             # время начала смены: из журнала, если он загружен, иначе стандартные 08:00
             'start_time': start_times.get(_norm_text(name)) or DEFAULT_START_TIME,
             'shifts': sorted({s.upper() for s in shifts}, key=_shift_sort_key),
             'days': len(month_shifts),
-        })
+        }
+        rows.append(last_entry)
 
     if not rows:
         where = f'{day:02d}.{month:02d}.{year}' if day else f'{month:02d}.{year}'
