@@ -441,11 +441,9 @@ def parse_schedule_file(filepath: str, db=None, year=None, month=None):
 
                 plan_str = str(plan_val).strip()
 
-                if not plan_str or plan_str == '0' or plan_str == 'nan':
-                    continue
-
                 # Строка ниже может быть «Вн. совм. …» — её смены относятся
-                # к этому же сотруднику и тоже попадают в план
+                # к этому же сотруднику и тоже попадают в план (проверяем
+                # до отсева пустых значений основного дня)
                 try:
                     if row_idx + 1 < len(df) and col_idx < len(df.columns):
                         vn_val = df.iloc[row_idx + 1, col_idx]
@@ -458,6 +456,9 @@ def parse_schedule_file(filepath: str, db=None, year=None, month=None):
                                 plan_str = vn_str
                 except Exception:
                     pass
+
+                if not plan_str or plan_str == '0' or plan_str == 'nan':
+                    continue
 
                 plan_type = normalize_plan_type(plan_str, target_date)
 
