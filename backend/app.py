@@ -1001,6 +1001,16 @@ async def upload_schedule(
             # Это ошибка входных данных пользователя, а не сервера
             raise HTTPException(status_code=400, detail=result['message'])
 
+        # Смены из строк «Вн. совм. …» — в план того же сотрудника
+        try:
+            import vn_sovm
+            vn = vn_sovm.apply(db, year, month)
+            print(f"✅ {vn.get('message')}")
+            result['vn_added'] = vn.get('added', 0)
+            result['vn_updated'] = vn.get('updated', 0)
+        except Exception as exc:  # noqa: BLE001 — не ломаем загрузку
+            print(f"⚠️ Вн. совм.: {exc}")
+
         # данные графика сразу переносим в лист файла — чтобы вкладка «График»
         # показывала то же, что попало в план (без отдельных кнопок)
         synced = {}

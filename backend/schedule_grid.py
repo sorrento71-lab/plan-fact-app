@@ -1052,6 +1052,15 @@ def import_schedule_to_plan(db, year, month):
 
     db.commit()
 
+    # Смены из строк «Вн. совм. …» переносим в план того же сотрудника
+    try:
+        import vn_sovm
+        vn_result = vn_sovm.apply(db, year, month)
+        added += vn_result.get('added', 0)
+        updated += vn_result.get('updated', 0)
+    except Exception as exc:  # noqa: BLE001 — перенос не должен ломать импорт
+        print(f'⚠️ Не удалось перенести смены «Вн. совм.»: {exc}')
+
     message = (f'Из графика «{wanted}» загружено: добавлено {added}, '
                f'обновлено {updated}, без изменений {unchanged}')
     if plan_without_graf:
