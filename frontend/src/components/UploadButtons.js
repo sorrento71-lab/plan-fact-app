@@ -34,19 +34,8 @@ function UploadButtons({ uploading, onUpload }) {
                 />
             </label>
 
-            <label
-                title="Загрузить график смен (ГРАФИК_ФОРМА A3.xlsx)"
-                style={{ ...buttonBase, background: uploading ? '#ccc' : '#4caf50' }}
-            >
-                📤 График
-                <input
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={(e) => onUpload(e, 'schedule')}
-                    disabled={uploading}
-                    style={{ display: 'none' }}
-                />
-            </label>
+            {/* Кнопка «График» убрана: загрузка графика — только на странице
+                «График», где выбирается месяц и сразу обновляются лист и план */}
         </div>
     );
 }
