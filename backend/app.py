@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Request, UploadFile, File, HTTPException
+﻿from fastapi import FastAPI, Depends, Request, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
@@ -1004,7 +1004,7 @@ async def upload_schedule(
         # Смены из строк «Вн. совм. …» — в план того же сотрудника
         try:
             import vn_sovm
-            vn = vn_sovm.apply(db, year, month)
+            vn = vn_sovm.apply(db, year, month, filepath=tmp_path)
             print(f"✅ {vn.get('message')}")
             result['vn_added'] = vn.get('added', 0)
             result['vn_updated'] = vn.get('updated', 0)

@@ -1,4 +1,4 @@
-"""Перенос смен из строк «Вн. совм. …» в план-факт.
+﻿"""Перенос смен из строк «Вн. совм. …» в план-факт.
 
 В ноябрьском графике у каждого сотрудника две строки: его собственная
 и вторая — «Вн. совм. <должность>» (внешнее совместительство), где ФИО
@@ -12,14 +12,15 @@ import schedule_grid as sg
 import shift_codes
 
 
-def apply(db, year, month):
+def apply(db, year, month, filepath=None):
     """Дописывает в план смены из строк «Вн. совм.» за указанный месяц."""
     year, month = int(year), int(month)
-    if not sg.os.path.exists(sg.SCHEDULE_FILE):
+    schedule_file = filepath or sg.SCHEDULE_FILE
+    if not sg.os.path.exists(schedule_file):
         return {'added': 0, 'updated': 0, 'message': 'Файл графика не найден'}
 
     from openpyxl import load_workbook
-    wb = load_workbook(sg.SCHEDULE_FILE)
+    wb = load_workbook(schedule_file)
     ws = sg._sheet_for(wb, year, month)
     if ws is None:
         return {'added': 0, 'updated': 0, 'message': 'Лист за этот месяц не найден'}
