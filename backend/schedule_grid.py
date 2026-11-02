@@ -2235,7 +2235,11 @@ def clear_schedule_data(db, year, month, clear_plan=True, clear_notes=True, clea
                                 cell.value = None
                                 notes_cleared += 1
                                 changed = True
-                    if not (name and str(name).strip()):
+                    has_name = bool(name and str(name).strip())
+                    mark = ws.cell(r, 4).value
+                    is_part_time = bool(mark and 'совм' in str(mark).lower())
+                    # смены чистим у сотрудников и у их вторых строк «Вн. совм.»
+                    if not has_name and not is_part_time:
                         continue
                     if clear_shifts:
                         for c in day_cols:
