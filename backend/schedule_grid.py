@@ -1902,6 +1902,18 @@ def delete_schedule_employee(row, db=None, year=None, month=None):
         return {'status': 'error',
                 'message': 'Не удалось записать файл графика — возможно, он открыт в Excel'}
 
+    # Вторая строка сотрудника — «Вн. совм. …» — удаляется вместе с ним
+    try:
+        second_deleted = False
+        if file_row <= ws.max_row:
+            mark = ws.cell(file_row, 4).value
+            if mark and 'совм' in str(mark).lower():
+                extra = delete_schedule_employee(row, db=None, year=year, month=month)
+                second_deleted = extra.get('status') == 'success'
+    except Exception as exc:  # noqa: BLE001 — удаление сотрудника уже выполнено
+        print(f"⚠️ Не удалось удалить строку «Вн. совм.»: {exc}")
+        second_deleted = False
+
     plans_left = 0
     if db is not None and year and month:
         employee = db.query(models.Employee).filter(models.Employee.name == name).first()
