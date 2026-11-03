@@ -948,6 +948,20 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                 )}
             </div>
 
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '4px', flexShrink: 0 }}>
+                <button
+                    onClick={() => setExcelView((v) => !v)}
+                    title="Переключить вид таблицы: обычный или как в Excel (ширины колонок из листа)"
+                    style={{
+                        padding: '3px 12px', fontSize: '11px', fontWeight: 'bold',
+                        background: excelView ? '#1565c0' : '#e3eefc', color: excelView ? '#fff' : '#1565c0',
+                        border: '1px solid #1565c0', borderRadius: '4px', cursor: 'pointer'
+                    }}
+                >
+                    {excelView ? '📊 Как в Excel' : '📋 Обычный вид'}
+                </button>
+            </div>
+
             {/* Таблица */}
             <div style={{ flex: 1, overflow: 'auto', border: '1px solid #ccc', borderRadius: '4px', background: 'white' }}>
                 <table style={{
@@ -958,7 +972,10 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                         дни месяца растягиваются на всю ширину экрана */}
                     <colgroup>
                         {cols.map((c) => {
-                            const w = colWidthFor(c);
+                            // В режиме «Как в Excel» берём ширины из самого листа
+                            const excelWidth = excelView && data.col_widths
+                                ? data.col_widths[String(c)] : null;
+                            const w = excelWidth ? Math.round(excelWidth * 8) : colWidthFor(c);
                             return <col key={c} style={w ? { width: `${w}px` } : undefined} />;
                         })}
                     </colgroup>
