@@ -993,7 +993,11 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                             <tr key={r} style={{
                                 backgroundColor: isRowSelected ? '#e3f2fd' : 'transparent',
                                 outline: isRowSelected ? '2px solid #1565c0' : 'none',
-                                outlineOffset: isRowSelected ? '-1px' : '0'
+                                outlineOffset: isRowSelected ? '-1px' : '0',
+                                // высота строки как в Excel (пункты листа → пиксели)
+                                ...(excelView && data.row_heights
+                                    ? { height: `${Math.round((data.row_heights[String(r)] || 15) * 1.33)}px` }
+                                    : {})
                             }}>
                                 {cols.map((c) => {
                                     const key = `${r}:${c}`;
