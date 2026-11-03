@@ -455,6 +455,25 @@ def load_schedule_grid(db=None, year=None, month=None):
 
     month_days = _days_in_month(year, month)
 
+    # Размеры как в Excel: ширины колонок и высоты строк из самого листа
+    from openpyxl.utils import get_column_letter
+    col_widths = {}
+    for c in kept_cols:
+        try:
+            width = ws.column_dimensions[get_column_letter(c)].width
+        except Exception:
+            width = None
+        if width:
+            col_widths[str(adj_c(c))] = round(float(width), 2)
+    row_heights = {}
+    for r in range(origin_row, max_row + 1):
+        try:
+            height = ws.row_dimensions[r].height
+        except Exception:
+            height = None
+        if height:
+            row_heights[str(adj_r(r))] = round(float(height), 2)
+
     return {
         'file': os.path.basename(SCHEDULE_FILE),
         'sheet': ws.title,
@@ -474,6 +493,8 @@ def load_schedule_grid(db=None, year=None, month=None):
         'merges': merges,
         'cells': cells,
         'stats': stats,
+        'col_widths': col_widths,
+        'row_heights': row_heights,
     }
 
 
