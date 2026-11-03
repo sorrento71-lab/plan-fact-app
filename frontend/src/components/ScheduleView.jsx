@@ -89,6 +89,31 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
     // Масштаб таблицы в виде «как в Excel»: 1 = 100 %
     const [scale, setScale] = useState(1);
 
+    // Ширины колонок, изменённые мышью (как в Excel): { '5': 120 }
+    const [customWidths, setCustomWidths] = useState({});
+
+    // Растягивание колонки за правую границу заголовка
+    const startColResize = (event, c) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const key = String(c);
+        const startX = event.clientX;
+        const base = customWidths[key]
+            || Math.round(((excelView && data.col_widths && data.col_widths[key])
+                ? data.col_widths[key] * 8
+                : (colWidthFor(c) || 44)) * (excelView ? scale : 1));
+        const onMove = (ev) => {
+            const next = Math.max(24, Math.round(base + (ev.clientX - startX)));
+            setCustomWidths((prev) => ({ ...prev, [key]: next }));
+        };
+        const onUp = () => {
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('mouseup', onUp);
+        };
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+    };
+
     // Выгрузка формы (actual — как есть, rhythm — только смены месяца по ритму)
     const [exporting, setExporting] = useState(null);
 
@@ -1023,7 +1048,8 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                             const base = excelWidth ? Math.round(excelWidth * 8) : colWidthFor(c);
                             // у каждой колонки должна быть явная ширина — иначе
                             // при масштабировании появляется «пустой» столбец
-                            const w = Math.round((base || 44) * (excelView ? scale : 1));
+                            const custom = customWidths[String(c)];
+                            const w = custom || Math.round((base || 44) * (excelView ? scale : 1));
                             return <col key={c} style={w ? { width: `${w}px` } : undefined} />;
                         })}
                     </colgroup>
@@ -1056,6 +1082,7 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                                     const style = cellStyle(cell, m, day);
                                     style.overflow = 'hidden';
                                     style.textOverflow = 'ellipsis';
+                                    style.position = 'relative';   // для ручки растягивания
                                     // рамка выделенной ячейки (как в Excel)
                                     if (selCell && selCell.r === r && selCell.c === c) {
                                         style.outline = '2px solid #1565c0';
@@ -1111,6 +1138,18 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                                                     style={inputStyle}
                                                 />
                                             ) : (cell.v || '')}
+                                            {/* ручка растягивания колонки — на заголовке */}
+                                            {isHeaderRow && r === data.header_row && (
+                                                <span
+                                                    onMouseDown={(e) => startColResize(e, c)}
+                                                    title="Потяните, чтобы изменить ширину"
+                                                    style={{
+                                                        position: 'absolute', top: 0, right: '-3px',
+                                                        width: '6px', height: '100%',
+                                                        cursor: 'col-resize', zIndex: 20
+                                                    }}
+                                                />
+                                            )}
                                         </td>
                                     );
                                 })}
