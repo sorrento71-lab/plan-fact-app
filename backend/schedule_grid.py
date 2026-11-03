@@ -242,8 +242,9 @@ def _visible_layout(ws, year=None, month=None):
     if not used:
         return header_row, day_cols, [], ws.max_row
     # + две колонки после дней: «Х» и «Изменения в графике» — их тоже
-    # показываем, чтобы в них можно было писать (часто они пустые)
-    end = min(ws.max_column, max(max(used) + 2, max(used)))
+    # показываем, чтобы в них можно было писать (в листе они бывают пустыми
+    # и выпадают из «используемого» диапазона)
+    end = max(used) + 2
     kept = [c for c in range(min(used), end + 1) if c not in hidden and c not in drop]
     return header_row, day_cols, kept, ws.max_row
 
