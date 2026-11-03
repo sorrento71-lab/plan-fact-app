@@ -86,6 +86,9 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
     // Вид «как в Excel»: ширины колонок берутся из самого листа
     const [excelView, setExcelView] = useState(false);
 
+    // Масштаб таблицы в виде «как в Excel»: 1 = 100 %
+    const [scale, setScale] = useState(1);
+
     // Выгрузка формы (actual — как есть, rhythm — только смены месяца по ритму)
     const [exporting, setExporting] = useState(null);
 
@@ -986,12 +989,28 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                     />
                     {excelView ? '📊 Вид как в Excel включён' : '📋 Обычный вид'}
                 </label>
+                {excelView && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '10px', fontSize: '11px' }}>
+                        <button
+                            onClick={() => setScale((s) => Math.max(0.6, Math.round((s - 0.1) * 10) / 10))}
+                            title="Уменьшить"
+                            style={{ padding: '1px 8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', border: '1px solid #bbb', borderRadius: '3px', background: '#fff' }}
+                        >−</button>
+                        <span style={{ minWidth: '38px', textAlign: 'center', color: '#555' }}>{Math.round(scale * 100)}%</span>
+                        <button
+                            onClick={() => setScale((s) => Math.min(2, Math.round((s + 0.1) * 10) / 10))}
+                            title="Увеличить"
+                            style={{ padding: '1px 8px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', border: '1px solid #bbb', borderRadius: '3px', background: '#fff' }}
+                        >+</button>
+                    </span>
+                )}
             </div>
 
             {/* Таблица */}
             <div style={{ flex: 1, overflow: 'auto', border: '1px solid #ccc', borderRadius: '4px', background: 'white' }}>
                 <table style={{
-                    borderCollapse: 'separate', borderSpacing: 0, fontSize: '12px',
+                    borderCollapse: 'separate', borderSpacing: 0,
+                    fontSize: `${Math.round(12 * (excelView ? scale : 1))}px`,
                     tableLayout: 'fixed', width: '100%', minWidth: '980px'
                 }}>
                     {/* Колонки: закреплённые и служебные — фиксированной ширины,
@@ -1001,7 +1020,8 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                             // В режиме «Как в Excel» ширина берётся из самого листа
                             const excelWidth = excelView && data.col_widths
                                 ? data.col_widths[String(c)] : null;
-                            const w = excelWidth ? Math.round(excelWidth * 8) : colWidthFor(c);
+                            const base = excelWidth ? Math.round(excelWidth * 8) : colWidthFor(c);
+                            const w = base ? Math.round(base * (excelView ? scale : 1)) : undefined;
                             return <col key={c} style={w ? { width: `${w}px` } : undefined} />;
                         })}
                     </colgroup>
