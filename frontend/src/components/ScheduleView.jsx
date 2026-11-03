@@ -951,20 +951,23 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                 )}
             </div>
 
-            {/* Переключатель вида: обычный / как в Excel */}
+            {/* Переключатель вида: галочка включает вид «как в Excel» */}
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '4px', flexShrink: 0 }}>
-                <button
-                    onClick={() => setExcelView((v) => !v)}
-                    title="Включить вид как в Excel: ширины колонок берутся из самого листа"
+                <label
+                    title="Поставьте галочку — таблица будет как в Excel: ширины и высоты из листа, все колонки"
                     style={{
-                        padding: '3px 12px', fontSize: '11px', fontWeight: 'bold',
-                        background: excelView ? '#1565c0' : '#e3eefc',
-                        color: excelView ? '#fff' : '#1565c0',
-                        border: '1px solid #1565c0', borderRadius: '4px', cursor: 'pointer'
+                        display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px',
+                        fontWeight: 'bold', color: excelView ? '#1565c0' : '#666', cursor: 'pointer'
                     }}
                 >
-                    {excelView ? '📊 Как в Excel' : '📋 Обычный вид'}
-                </button>
+                    <input
+                        type="checkbox"
+                        checked={excelView}
+                        onChange={(e) => setExcelView(e.target.checked)}
+                        style={{ width: '15px', height: '15px', cursor: 'pointer' }}
+                    />
+                    {excelView ? '📊 Вид как в Excel включён' : '📋 Обычный вид'}
+                </label>
             </div>
 
             {/* Таблица */}
