@@ -586,7 +586,10 @@ def set_schedule_employee_field(row, field, value, db=None, year=None, month=Non
 
     cell = ws.cell(target_row, col)
     if isinstance(cell, MergedCell):
-        cell = ws.cell(target_row, col)
+        # писать можно только в верхнюю ячейку объединения — иначе
+        # объединение разрушается и пропадают названия участков
+        return {'status': 'error',
+                'message': 'Не удалось изменить участок: ячейка входит в объединение'}
     cell.value = text or None
 
     try:
