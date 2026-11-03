@@ -45,6 +45,24 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
     // иначе при одинаковых ФИО действия попадают не в ту строку
     const [selected, setSelected] = useState(null);
 
+    // Выделенная ячейка (как в Excel): клик выделяет, Delete очищает,
+    // повторный клик по выделенной ячейке открывает правку
+    const [selCell, setSelCell] = useState(null);
+
+    useEffect(() => {
+        const onKey = (event) => {
+            if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+            if (!selCell || editing) return;
+            if (event.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
+            if (selCell.c <= 3) return;   // ФИО/должность/участок так не чистим
+            event.preventDefault();
+            saveCell(selCell.r, selCell.c, '', undefined);
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selCell, editing]);
+
     // Окно подтверждения очистки: вопрос ждёт ответа 5 секунд
     const [clearAsk, setClearAsk] = useState(null);      // {plans, employees, notes}
     const [clearLeft, setClearLeft] = useState(0);       // секунд до автоотмены
@@ -1016,6 +1034,11 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                                     const style = cellStyle(cell, m, day);
                                     style.overflow = 'hidden';
                                     style.textOverflow = 'ellipsis';
+                                    // рамка выделенной ячейки (как в Excel)
+                                    if (selCell && selCell.r === r && selCell.c === c) {
+                                        style.outline = '2px solid #1565c0';
+                                        style.outlineOffset = '-2px';
+                                    }
 
                                     if (isHeaderRow) {
                                         style.position = 'sticky';
@@ -1045,7 +1068,13 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                                             title={cellTitle(cell) || (emp ? 'Кликните, чтобы выбрать сотрудника' : undefined)}
                                             onClick={emp ? () => {
                                                 selectRow(r);
-                                                if (clickable) startEdit(r, c, cell.v);
+                                                const already = selCell && selCell.r === r && selCell.c === c;
+                                                setSelCell({ r, c });
+                                                // в виде «как в Excel»: первый клик выделяет,
+                                                // второй по той же ячейке — открывает правку
+                                                if (clickable && (!excelView || already)) {
+                                                    startEdit(r, c, cell.v);
+                                                }
                                             } : undefined}
                                         >
                                             {isEditing ? (
