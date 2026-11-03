@@ -1021,7 +1021,9 @@ function ScheduleView({ year, month, refreshToken, onPlanChanged }) {
                             const excelWidth = excelView && data.col_widths
                                 ? data.col_widths[String(c)] : null;
                             const base = excelWidth ? Math.round(excelWidth * 8) : colWidthFor(c);
-                            const w = base ? Math.round(base * (excelView ? scale : 1)) : undefined;
+                            // у каждой колонки должна быть явная ширина — иначе
+                            // при масштабировании появляется «пустой» столбец
+                            const w = Math.round((base || 44) * (excelView ? scale : 1));
                             return <col key={c} style={w ? { width: `${w}px` } : undefined} />;
                         })}
                     </colgroup>
