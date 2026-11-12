@@ -900,15 +900,9 @@ def add_schedule_employee(name, position='', section='', db=None, year=None, mon
     for c in range(5, ws.max_column + 1):
         ws.cell(new_row, c).value = None
 
-    # Продлеваем объединение подписи участка на новую строку — чтобы человек
-    # визуально остался внутри своего участка (колонки 1–2: участок и ФИО).
-    if last_of_section:
-        for merged in list(ws.merged_cells.ranges):
-            if (merged.min_row < merged.max_row and merged.max_row == last_of_section
-                    and merged.min_col <= 2):
-                ws.unmerge_cells(str(merged))
-                ws.merge_cells(start_row=merged.min_row, start_column=merged.min_col,
-                               end_row=merged.max_row + 1, end_column=merged.max_col)
+    # ВАЖНО: объединение подписи участка НЕ расширяем. Расширение стирало
+    # названия соседних участков. Участок новой строки берётся из объединения
+    # выше — так же, как у всех остальных строк.
 
     # Вторая строка сотрудника — «Вн. совм. <должность>» курсивом, как в листе.
     if position:
