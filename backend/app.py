@@ -128,6 +128,23 @@ def client_month(request: Request):
 
 
 # ============================================================
+# ХРАНИЛИЩЕ ГРАФИКА В БАЗЕ (переделка «правка без Excel»)
+# ============================================================
+@app.get("/schedule/store/")
+def get_schedule_store(year: int, month: int, db: Session = Depends(get_db)):
+    """Ячейки листа графика из базы: что импортировано из файла."""
+    import schedule_store
+
+    cells = schedule_store.load_cells(db, year, month)
+    return {
+        "year": int(year),
+        "month": int(month),
+        "count": len(cells),
+        "cells": [{"r": r, "c": c, "v": v} for (r, c), v in sorted(cells.items())],
+    }
+
+
+# ============================================================
 # КОРЕНЬ
 # ============================================================
 @app.get("/")
