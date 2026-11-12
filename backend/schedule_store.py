@@ -53,6 +53,43 @@ def import_sheet(db, year, month):
             'header_row': header_row, 'day_cols': len(day_cols), 'kept_cols': len(kept_cols)}
 
 
+def import_merges(db, year, month):
+    """Сохраняет объединённые ячейки листа в таблицу schedule_merges."""
+    from openpyxl import load_workbook
+
+    year, month = int(year), int(month)
+    wb = load_workbook(sg.SCHEDULE_FILE)
+    ws = sg._sheet_for(wb, year, month)
+    if ws is None:
+        return 0
+
+    db.query(models.ScheduleMerge).filter(
+        models.ScheduleMerge.year == year,
+        models.ScheduleMerge.month == month,
+    ).delete()
+
+    count = 0
+    for merged in ws.merged_cells.ranges:
+        db.add(models.ScheduleMerge(
+            year=year, month=month,
+            row1=merged.min_row, col1=merged.min_col,
+            row2=merged.max_row, col2=merged.max_col,
+        ))
+        count += 1
+    db.commit()
+    return count
+
+
+def load_merges(db, year, month):
+    """Объединения месяца: [(строка1, колонка1, строка2, колонка2), …]."""
+    year, month = int(year), int(month)
+    rows = db.query(models.ScheduleMerge).filter(
+        models.ScheduleMerge.year == year,
+        models.ScheduleMerge.month == month,
+    ).all()
+    return [(m.row1, m.col1, m.row2, m.col2) for m in rows]
+
+
 def load_cells(db, year, month):
     """Ячейки месяца из базы: {(строка, колонка): значение}."""
     year, month = int(year), int(month)
@@ -169,6 +206,19 @@ def add_employee(db, year, month, name, position='', section=''):
         shifted[(insert_at + 1, 4)] = f'Вн. совм. {str(position).strip()}'
 
     save_cells(db, year, month, shifted)
+
+    # объединения: сдвигаем вместе со строками, а объединение участка,
+    # в который добавили сотрудника, продлеваем на две новые строки
+    for merge in db.query(models.ScheduleMerge).filter(
+            models.ScheduleMerge.year == year,
+            models.ScheduleMerge.month == month).all():
+        if merge.row1 >= insert_at:
+            merge.row1 += 2
+            merge.row2 += 2
+        elif merge.row1 <= last <= merge.row2 and merge.row1 < merge.row2:
+            merge.row2 += 2
+    db.commit()
+
     return {'status': 'success', 'row': insert_at,
             'message': f'Сотрудник «{name}» добавлен в участок '
                        f'«{section or "—"}» (строка {insert_at})'}
