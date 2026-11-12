@@ -338,11 +338,30 @@ class ScheduleEmployeeRequest(BaseModel):
 
 @app.post("/schedule/employee/")
 def add_employee_to_schedule(request: ScheduleEmployeeRequest, db: Session = Depends(get_db)):
-    """Добавляет сотрудника в график и в справочник БД."""
-    result = add_schedule_employee(request.name, request.position or '', request.section or '',
-                                   db=db, year=request.year, month=request.month)
+    """Добавляет сотрудника в участок графика через базу (без правки Excel)."""
+    import schedule_store
+
+    result = schedule_store.add_employee(
+        db, request.year, request.month,
+        request.name, request.position or '', request.section or '',
+    )
     if result.get('status') == 'error':
         raise HTTPException(status_code=400, detail=result['message'])
+
+    # справочник сотрудников
+    try:
+        name = (request.name or '').strip()
+        if name and db.query(models.Employee).filter(models.Employee.name == name).first() is None:
+            db.add(models.Employee(
+                name=name,
+                position=(request.position or '').strip(),
+                department=(request.section or '').strip(),
+                order=db.query(models.Employee).count() + 1,
+            ))
+            db.commit()
+    except Exception as exc:  # noqa: BLE001 — сотрудник уже добавлен в лист
+        print(f"⚠️ Справочник: {exc}")
+
     return result
 
 
