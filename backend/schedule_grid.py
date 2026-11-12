@@ -2054,7 +2054,7 @@ def create_month_sheet(year, month):
         tc = src_first_day + day - 1
         if extra_width:
             dst.column_dimensions[get_column_letter(tc)].width = extra_width
-        for r in range(1, max_row + 1):
+        for r in range(1, src.max_row + 1):
             cell = dst.cell(r, tc)
             if isinstance(cell, MergedCell):
                 continue
