@@ -1991,7 +1991,17 @@ def create_month_sheet(year, month):
     if title in [n.strip() for n in wb.sheetnames]:
         return {'status': 'error', 'message': f'Лист «{title}» уже есть в файле графика'}
 
-    src = wb[wb.sheetnames[0]]
+    # Шаблон — самый свежий лист месяца (например, 11.2026 для декабря),
+    # а не первый лист файла: у старых листов другая раскладка колонок.
+    def _sheet_key(name):
+        try:
+            mm, yy = name.strip().split('.')
+            return int(yy) * 100 + int(mm)
+        except Exception:
+            return -1
+
+    month_sheets = [n for n in wb.sheetnames if _sheet_key(n) > 0]
+    src = wb[max(month_sheets, key=_sheet_key)] if month_sheets else wb[wb.sheetnames[0]]
     header_row, day_cols = _find_header(src)
     if header_row is None or not day_cols:
         return {'status': 'error', 'message': 'В файле графика не найдена строка с днями'}
