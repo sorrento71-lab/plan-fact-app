@@ -20,6 +20,22 @@ class ScheduleCell(Base):
     col = Column(Integer, index=True)
     value = Column(String, default='')
 
+
+class ScheduleMerge(Base):
+    """Объединённая ячейка листа графика (участки, заголовки, шапка).
+
+    Хранится вместе с ячейками: при добавлении строк объединения нужно
+    сдвигать так же, как значения, иначе участки «съезжают».
+    """
+    __tablename__ = 'schedule_merges'
+    id = Column(Integer, primary_key=True)
+    year = Column(Integer, index=True)
+    month = Column(Integer, index=True)
+    row1 = Column(Integer)
+    col1 = Column(Integer)
+    row2 = Column(Integer)
+    col2 = Column(Integer)
+
 class Employee(Base):
     __tablename__ = 'employees'
     id = Column(Integer, primary_key=True)
