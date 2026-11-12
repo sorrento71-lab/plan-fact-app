@@ -5,6 +5,21 @@ from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
+class ScheduleCell(Base):
+    """Ячейка листа графика, хранимая в базе.
+
+    Нужна, чтобы правка графика (добавление сотрудника в участок, очистка,
+    редактирование любой ячейки) работала без перезаписи xlsx-файла:
+    файл остаётся источником для импорта и для выгрузки.
+    """
+    __tablename__ = 'schedule_cells'
+    id = Column(Integer, primary_key=True)
+    year = Column(Integer, index=True)
+    month = Column(Integer, index=True)
+    row = Column(Integer, index=True)
+    col = Column(Integer, index=True)
+    value = Column(String, default='')
+
 class Employee(Base):
     __tablename__ = 'employees'
     id = Column(Integer, primary_key=True)
